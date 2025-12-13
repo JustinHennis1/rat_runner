@@ -1,16 +1,13 @@
-# jumpnthrow
+# Rat Run
 
-A new Flutter project.
+## Story
+
+Help tony defeat the evil rats that have spawned from the sewer system, but be careful
+because these rats have developed magical arts to destroy the human race.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This project is a Flutter application, specifically built with mobile devices in mind.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+To replicate this project it is important you install flutter on your device:
+-   [Flutter Documentaion](https://docs.flutter.dev/)

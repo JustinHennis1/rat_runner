@@ -14,6 +14,7 @@ class ContinueMenu extends StatefulWidget {
 class _ContinueMenuState extends State<ContinueMenu> {
   int highScore = 0;
   int prevScore = 0;
+  bool newHighScore = false;
 
   @override
   void initState() {
@@ -28,6 +29,7 @@ class _ContinueMenuState extends State<ContinueMenu> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       highScore = prefs.getInt('highScore') ?? 0;
+      newHighScore = prevScore >= highScore;
     });
   }
 
@@ -57,6 +59,11 @@ class _ContinueMenuState extends State<ContinueMenu> {
             ),
             Column(
               children: [
+                if (newHighScore)
+                  const Text(
+                    '🎉 New High Score!',
+                    style: TextStyle(fontSize: 26, color: Colors.green),
+                  ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

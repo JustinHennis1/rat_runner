@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jumpnthrow/views/game.dart';
 import 'package:jumpnthrow/views/menu.dart';
+import 'package:jumpnthrow/views/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MainMenu extends StatefulWidget {
@@ -56,44 +57,53 @@ class _MainMenuState extends State<MainMenu> {
                 ],
               ),
               SizedBox(
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 110.0,
-                    horizontal: 60,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(
-                      255,
-                      158,
-                      249,
-                      237,
-                    ).withOpacity(0.85),
-                    borderRadius: BorderRadius.circular(360),
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Sewer Rat',
-                        style: TextStyle(
-                          fontSize: 68,
-                          color: Colors.black,
-                          fontWeight: FontWeight.normal,
-                          fontFamily: 'Gamer',
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 350,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/pgdesign.png'),
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      const Text(
-                        'Runner',
-                        style: TextStyle(
-                          fontSize: 54,
-                          color: Colors.black,
-                          fontWeight: FontWeight.normal,
-                          fontFamily: 'Gamer',
-                          fontStyle: FontStyle.italic,
+                    ),
+                    Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            const Text(
+                              'Rat',
+                              style: TextStyle(
+                                fontSize: 130,
+                                color: Colors.white,
+                                fontWeight: FontWeight.normal,
+                                fontFamily: 'Gamer',
+                              ),
+                            ),
+                            SizedBox(width: 50),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            SizedBox(width: 50),
+                            const Text(
+                              'Run',
+                              style: TextStyle(
+                                fontSize: 130,
+                                color: Colors.white,
+                                fontWeight: FontWeight.normal,
+                                fontFamily: 'Gamer',
+                                fontStyle: FontStyle.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 50),
@@ -124,6 +134,8 @@ class _MainMenuState extends State<MainMenu> {
                         if (score > currentHigh) {
                           await prefs.setInt('highScore', score);
                         }
+                        // testing reset highscore
+                        //await prefs.setInt('highScore', 0);
                         _loadHighScore(); // Refresh displayed high score
                       }
 
@@ -140,7 +152,12 @@ class _MainMenuState extends State<MainMenu> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () async {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => GameSettings()),
+                      );
+                    },
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Icon(Icons.settings, size: 36),

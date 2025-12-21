@@ -3,77 +3,84 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/parallax.dart';
 import 'package:flutter/material.dart';
+
 import 'package:jumpnthrow/models/animations.dart';
 import 'package:jumpnthrow/models/characters.dart';
-import 'package:jumpnthrow/models/projectile.dart';
-import 'dart:math';
+import 'package:jumpnthrow/models/collision.dart';
+import 'package:jumpnthrow/models/enemy_controller.dart';
+import 'package:jumpnthrow/models/game_settings_model.dart';
+import 'package:jumpnthrow/models/game_state.dart';
+import 'package:jumpnthrow/models/player_controller.dart';
+import 'package:jumpnthrow/views/settings.dart';
 
 class StickmanRunner extends FlameGame
     with HasCollisionDetection, TapCallbacks {
   final void Function(int) onGameEnd;
   StickmanRunner({required this.onGameEnd});
 
+  // Core components
   late ParallaxComponent parallaxBackground;
   late SpriteAnimationComponent boy;
   late SpriteAnimationComponent rat;
+
+  // Game constants (unchanged)
   final double gameSpeed = 180.0;
-  bool isJumping = false;
-  bool isLunging = false;
-  bool isShooting = false;
-  double velocityY = 0;
-  double velocityX = 0;
   final double gravity = 980.0;
   final double jumpForce = -500.0;
   final double lungeForce = 400.0;
+
   final int boy_y = 210;
   final int boy_x = 10;
   final int rat_y = 210;
   final int rat_x = 10;
+
+  // UI
+  late SpriteComponent scoreBackdrop;
   late TextComponent scoreText;
   late TextComponent healthText;
   late TextComponent rathealthText;
-  double health = 100;
-  double rathealth = 100;
-  double distance = 0; // Distance ran
-  double speed = 100; // pixels per second
+
+  // Gameplay values
+  double speed = 100;
   double projectileSpeed = 240;
-  int level = 1;
 
-  // Projectile management
-  final List<Projectile> projectiles = [];
-  final List<EnemyProjectile> enemyProjectiles = [];
-
-  // Enemy shooting variables
-  double enemyShootTimer = 0;
-  double enemyShootInterval = 2.0;
-  final Random random = Random();
+  // Centralized state
+  final GameState state = GameState();
 
   @override
   Future<void> onLoad() async {
-    // Create seamless scrolling background using Parallax
     final parallax = await loadParallax(
       [ParallaxImageData('background.jpg')],
       baseVelocity: Vector2(gameSpeed, 0),
       velocityMultiplierDelta: Vector2(1, 1),
     );
 
-    parallaxBackground = ParallaxComponent(parallax: parallax);
-    parallaxBackground.scale = Vector2(2, 2);
-    parallaxBackground.position = Vector2(0, -900);
+    parallaxBackground = ParallaxComponent(parallax: parallax)
+      ..scale = Vector2(2, 2)
+      ..position = Vector2(0, -900);
+
     add(parallaxBackground);
 
+    scoreBackdrop = SpriteComponent(
+      sprite: await loadSprite('pgdesign.png'),
+      anchor: Anchor.center,
+      position: Vector2(size.x/2, 50),
+      size: Vector2(size.x, 120), // backdrop height
+    );
+
     scoreText = TextComponent(
-      text: 'Score: 0',
-      position: Vector2(20, 80),
+      text: '0',
+      position: Vector2(size.x/2, 80),
+      anchor: Anchor.center,
       textRenderer: TextPaint(
         style: const TextStyle(
-          color: Colors.red,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          fontSize: 48,
+          fontWeight: FontWeight.normal,
+          fontFamily: 'Gamer'
         ),
       ),
     );
-    add(scoreText);
 
     healthText = TextComponent(
       text: 'Health: 100',
@@ -86,7 +93,6 @@ class StickmanRunner extends FlameGame
         ),
       ),
     );
-    add(healthText);
 
     rathealthText = TextComponent(
       text: 'Health: 100',
@@ -99,6 +105,10 @@ class StickmanRunner extends FlameGame
         ),
       ),
     );
+
+    add(scoreBackdrop);
+    add(scoreText);
+    add(healthText);
     add(rathealthText);
 
     await Animations.load();
@@ -108,15 +118,13 @@ class StickmanRunner extends FlameGame
       position: Vector2(boy_x.toDouble(), size.y - boy_y),
     );
 
-    rat = Enemy(
-      animation: Animations.enemyFireball,
-      position: Vector2(size.x - rat_x.toDouble(), size.y - rat_y),
+    rat = EnemyController.spawnEnemy(
+      size,
+      rat_x,
+      rat_y,
+      state.level,
     );
 
-    // Flip the rat horizontally to face left (toward the player)
-    rat.flipHorizontallyAroundCenter();
-
-    // Add characters to the game
     add(boy);
     add(rat);
   }
@@ -125,318 +133,178 @@ class StickmanRunner extends FlameGame
   void update(double dt) {
     super.update(dt);
 
-    distance += speed * dt;
-    scoreText.text = 'Score: ${distance.toInt()}';
+    // Distance / score
+    state.distance += speed * dt;
+    scoreText.text = '${state.distance.toInt()}';
 
-    // Enemy shooting logic - shoot at random intervals
-    enemyShootTimer += dt;
-    if (enemyShootTimer >= enemyShootInterval) {
-      setAttacked(level);
-      enemyShootTimer = 0;
-      // Randomize next shot interval between 1.5 and 3 seconds
-      enemyShootInterval = 1.5 + random.nextDouble() * 1.5;
+    // Enemy shooting
+    state.enemyShootTimer += dt;
+    if (state.enemyShootTimer >= state.enemyShootInterval) {
+      setAttacked(state.level);
+      state.enemyShootTimer = 0;
+      state.enemyShootInterval =
+          1.5 + state.random.nextDouble() * 1.5;
     }
 
-    // Apply gravity and update vertical position
-    if (isJumping || boy.position.y < size.y - 150) {
-      velocityY += gravity * dt;
-      boy.position.y += velocityY * dt;
+    // Jump physics
+    if (state.isJumping || boy.position.y < size.y - 150) {
+      state.velocityY += gravity * dt;
+      boy.position.y += state.velocityY * dt;
 
-      // Ground collision check
       if (boy.position.y >= size.y - boy_y) {
         boy.position.y = size.y - boy_y;
-        velocityY = 0;
-        isJumping = false;
+        state.velocityY = 0;
+        state.isJumping = false;
       }
     }
 
-    // Return to original x position after attack
-    // made for luge action if used
-    if (isLunging || boy.position.x < size.x - 150) {
-      velocityX -= gravity * dt;
-      boy.position.x += velocityX * dt;
+    // Lunge physics
+    if (state.isLunging || boy.position.x < size.x - 150) {
+      state.velocityX -= gravity * dt;
+      boy.position.x += state.velocityX * dt;
 
       if (boy.position.x <= boy_x) {
         boy.position.x = boy_x.toDouble();
-        velocityX = 0;
-        isLunging = false;
+        state.velocityX = 0;
+        state.isLunging = false;
       }
     }
 
-    if (!isJumping && !isLunging && !isShooting) {
-      boy.animation = Animations.run;
+    if (!state.isJumping &&
+        !state.isLunging &&
+        !state.isShooting) {
+      PlayerController.setRun(boy);
     }
 
-    // Remove projectiles that are off-screen
-    projectiles.removeWhere((projectile) {
-      if (projectile.position.x > size.x) {
-        projectile.removeFromParent();
+    // Cleanup projectiles
+    state.projectiles.removeWhere((p) {
+      if (p.position.x > size.x) {
+        p.removeFromParent();
         return true;
       }
       return false;
     });
 
-    // Check collision between projectiles and rat
-    for (var projectile in List.from(projectiles)) {
-      if (rat.isMounted && _checkCollision(projectile, rat)) {
+    // Player projectiles → enemy
+    for (final projectile in List.from(state.projectiles)) {
+      if (rat.isMounted &&
+          CollisionHelper.projectileHitsEnemy(
+              projectile, rat)) {
         projectile.removeFromParent();
-        projectiles.remove(projectile);
-        rathealth -= 20;
-        rathealthText.text = 'Health: $rathealth';
-        //print("Hit the rat!");
+        state.projectiles.remove(projectile);
+        state.ratHealth -= 20;
+        rathealthText.text = 'Health: ${state.ratHealth}';
       }
     }
 
-    // Check collision between enemy projectiles and player
-    for (var projectile in List.from(enemyProjectiles)) {
-      if (_checkEnemyCollision(projectile, boy)) {
+    // Enemy projectiles → player
+    for (final projectile in List.from(state.enemyProjectiles)) {
+      if (CollisionHelper.enemyHitsPlayer(projectile, boy)) {
         projectile.removeFromParent();
-        enemyProjectiles.remove(projectile);
-        //print("Hit the player!");
-        health -= 20;
-        healthText.text = 'Health: $health';
+        state.enemyProjectiles.remove(projectile);
+        state.health -= 20;
+        healthText.text = 'Health: ${state.health}';
       }
     }
 
-    if (health <= 0) {
-      //print("You Lost");
-      onGameEnd(distance.toInt());
-      pauseEngine(); // Stop the game
-    } else if (rathealth <= 0) {
+    // End conditions
+    if (state.health <= 0) {
+      onGameEnd(state.distance.toInt());
+      pauseEngine();
+    } else if (state.ratHealth <= 0) {
       if (rat.isMounted) {
         remove(rat);
       }
       spawn();
-      print("Double Score");
-      distance = distance * 2;
+      state.distance *= 1.5;
     }
-  }
-
-  // Simple collision detection with reduced hitbox
-  bool _checkCollision(Projectile projectile, SpriteAnimationComponent target) {
-    final projectileRect = projectile.toRect();
-
-    // Create a smaller hitbox for the rat (adjust percentages as needed)
-    final targetRect = Rect.fromLTWH(
-      target.position.x + target.size.x * 0.2, // Offset from left
-      target.position.y - 70, // Offset from top
-      target.size.x * 0.6, // 60% of original width
-      target.size.y * 0.6, // 60% of original height
-    );
-
-    return projectileRect.overlaps(targetRect);
-  }
-
-  bool _checkEnemyCollision(
-    EnemyProjectile projectile,
-    SpriteAnimationComponent target,
-  ) {
-    // Custom hitbox made for enemy projectile
-    final enemyRect = Rect.fromLTWH(
-      projectile.position.x - 35,
-      projectile.position.y - 10,
-      projectile.size.x * 0.4,
-      projectile.size.y * 0.4,
-    );
-
-    // Create a smaller hitbox for the stickman (adjust percentages as needed)
-    final targetRect = Rect.fromLTWH(
-      target.position.x + target.size.x * 0.25, // Offset from left
-      target.position.y - 70, // Offset from top (important for jumping)
-      target.size.x * 0.5, // 50% of original width
-      target.size.y * 0.6, // 60% of original height
-    );
-
-    return enemyRect.overlaps(targetRect);
   }
 
   Future<void> setAttacked(int level) async {
-    if (rat.isMounted) {
-      // Load the sprite sheet and extract the 4th frame
-      final ratsheet = images.fromCache('rats.png'); // Use cached image
-      final spriteSize = Vector2(380, 380);
-      Sprite projectileSprite;
-      if (level <= 3) {
-        projectileSprite = Sprite(
-          ratsheet,
-          srcPosition: Vector2(
-            380 * 3,
-            level * 320 - 320,
-          ), // 4th frame: y = 380 * 3
-          srcSize: spriteSize,
-        );
-      } else {
-        projectileSprite = Sprite(
-          ratsheet,
-          srcPosition: Vector2(380 * 3, 0), // 4th frame: y = 380 * 3
-          srcSize: spriteSize,
-        );
-      }
-      final projectile = EnemyProjectile(
-        spriteImage: projectileSprite,
-        position: Vector2(rat.position.x - 30, rat.position.y - 50),
-        speed: projectileSpeed,
+    if (!rat.isMounted) return;
+
+    final ratsheet = images.fromCache('rats.png');
+    final spriteSize = Vector2(380, 380);
+
+    Sprite projectileSprite;
+    if (level <= 3) {
+      projectileSprite = Sprite(
+        ratsheet,
+        srcPosition: Vector2(380 * 3, level * 320 - 320),
+        srcSize: spriteSize,
       );
-      projectile.flipHorizontallyAroundCenter();
-      add(projectile);
-      enemyProjectiles.add(projectile);
+    } else {
+      projectileSprite = Sprite(
+        ratsheet,
+        srcPosition: Vector2(380 * 3, 0),
+        srcSize: spriteSize,
+      );
     }
+
+    final projectile = EnemyController.createProjectile(
+      projectileSprite,
+      Vector2(rat.position.x - 30, rat.position.y - 50),
+      projectileSpeed,
+    );
+
+    add(projectile);
+    state.enemyProjectiles.add(projectile);
   }
 
   void jump() {
-    if (!isJumping && boy.position.y >= size.y - 250) {
-      isJumping = true;
-      boy.animation = Animations.jump;
-      velocityY = jumpForce;
+    if (!state.isJumping && boy.position.y >= size.y - 250) {
+      state.isJumping = true;
+      PlayerController.setJump(boy);
+      state.velocityY = jumpForce;
 
-      Future.delayed(Duration(milliseconds: 300), () {
-        isJumping = false;
+      Future.delayed(const Duration(milliseconds: 300), () {
+        state.isJumping = false;
       });
     }
   }
 
   void lunge() {
-    if (!isLunging && boy.position.x <= boy_x + 10) {
-      isLunging = true;
-      velocityX = lungeForce;
+    if (!state.isLunging && boy.position.x <= boy_x + 10) {
+      state.isLunging = true;
+      state.velocityX = lungeForce;
     }
   }
 
   void shoot() {
-    if (!isShooting) {
-      // Prevent shooting while already shooting
-      // Create projectile at stickman's position
-      final projectile = Projectile(
-        position: Vector2(boy.position.x + 50, boy.position.y - 50),
-      );
-      isShooting = true;
-      boy.animation = Animations.attack;
+    if (state.isShooting) return;
 
-      add(projectile);
-      projectiles.add(projectile);
+    final projectile = PlayerController.shoot(boy.position);
+    state.isShooting = true;
+    PlayerController.setAttack(boy);
 
-      // Reset after animation duration (adjust time as needed)
-      Future.delayed(Duration(milliseconds: 200), () {
-        isShooting = false;
-      });
-    }
+    add(projectile);
+    state.projectiles.add(projectile);
+
+    Future.delayed(const Duration(milliseconds: 200), () {
+      state.isShooting = false;
+    });
   }
 
   void spawn() {
-    if (!rat.isMounted) {
-      level += 1;
+    if (rat.isMounted) return;
 
-      // Reset rat health
-      rathealth = 100;
-      rathealthText.text = 'Health: $rathealth';
+    state.level += 1;
+    state.ratHealth = 100;
+    rathealthText.text = 'Health: ${state.ratHealth}';
 
-      // Choose attack pattern based on level
-      SpriteAnimation attackPattern = Animations.enemyFireball;
-      switch (level) {
-        case 2:
-          attackPattern = Animations.enemyFireball2;
-          break;
-        case 3:
-          attackPattern = Animations.enemyPoisonball;
-          break;
-        default:
-          attackPattern = Animations.enemyFireball;
-          break;
-      }
-
-      // Create new rat
-      rat = Enemy(
-        position: Vector2(size.x - rat_x.toDouble(), size.y - rat_y),
-        animation: attackPattern,
-      );
-
-      // Flip horizontally to face the player
-      rat.flipHorizontallyAroundCenter();
-
-      // Add the new rat to the game
-      add(rat);
-    }
-  }
-
-  //
-  //
-  // For Hitbox Visualization
-  //
-  //
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-
-    // Draw hitboxes for debugging
-    _drawHitboxes(canvas);
-  }
-
-  void _drawHitboxes(Canvas canvas) {
-    final paint = Paint()
-      ..color = Colors.green.withOpacity(0.5)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    final fillPaint = Paint()
-      ..color = Colors.green.withOpacity(0.2)
-      ..style = PaintingStyle.fill;
-
-    // Draw stickman hitbox
-    final stickmanHitbox = Rect.fromLTWH(
-      boy.position.x + boy.size.x * 0.25,
-      boy.position.y - 70,
-      boy.size.x * 0.5,
-      boy.size.y * 0.6,
+    rat = EnemyController.spawnEnemy(
+      size,
+      rat_x,
+      rat_y,
+      state.level,
     );
-    canvas.drawRect(stickmanHitbox, fillPaint);
-    canvas.drawRect(stickmanHitbox, paint);
 
-    // Draw rat hitbox
-    final ratPaint = Paint()
-      ..color = Colors.red.withOpacity(0.5)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    final ratFillPaint = Paint()
-      ..color = Colors.red.withOpacity(0.2)
-      ..style = PaintingStyle.fill;
-
-    final ratHitbox = Rect.fromLTWH(
-      rat.position.x + rat.size.x * 0.2,
-      rat.position.y - 70,
-      rat.size.x * 0.6,
-      rat.size.y * 0.6,
-    );
-    canvas.drawRect(ratHitbox, ratFillPaint);
-    canvas.drawRect(ratHitbox, ratPaint);
-
-    // Draw projectile hitboxes
-    final projectilePaint = Paint()
-      ..color = Colors.yellow.withOpacity(0.7)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    for (var projectile in projectiles) {
-      canvas.drawRect(projectile.toRect(), projectilePaint);
-    }
-
-    // Draw enemy projectile hitboxes
-    final enemyProjectilePaint = Paint()
-      ..color = Colors.orange.withOpacity(0.7)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
-
-    for (var projectile in enemyProjectiles) {
-      final enemyRect = Rect.fromLTWH(
-        projectile.position.x - 35,
-        projectile.position.y - 10,
-        projectile.size.x * 0.4,
-        projectile.size.y * 0.4,
-      );
-      canvas.drawRect(enemyRect, enemyProjectilePaint);
-    }
+    add(rat);
+    rat.position.y = size.y - 200;
+    rat.position.x = size.x - 100;
   }
 }
+
 
 // Main widget to run the game
 class MyGameWidget extends StatelessWidget {
@@ -448,7 +316,11 @@ class MyGameWidget extends StatelessWidget {
       onGameEnd: (score) {
         Navigator.pop(context, score);
       },
+
+      
     );
+
+  final GameSettings settings = GameSettings();
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -458,10 +330,11 @@ class MyGameWidget extends StatelessWidget {
             GameWidget(game: game),
             Positioned(
               bottom: 20,
-              right: 20,
+                left: GameSettingsModel.leftHanded ? 20 : null,
+                right: GameSettingsModel.leftHanded ? null : 20,
               child: SizedBox(
-                height: 80,
-                width: 80,
+                height: GameSettingsModel.buttonSize,
+                width: GameSettingsModel.buttonSize,
                 child: FloatingActionButton(
                   onPressed: () {
                     game.shoot(); // Changed to shoot projectiles
@@ -473,10 +346,11 @@ class MyGameWidget extends StatelessWidget {
             ),
             Positioned(
               bottom: 20,
-              left: 20,
+                left: GameSettingsModel.leftHanded ? null : 20,
+                right: GameSettingsModel.leftHanded ? 20 : null,
               child: SizedBox(
-                height: 80,
-                width: 80,
+                height: GameSettingsModel.buttonSize,
+                width: GameSettingsModel.buttonSize,
                 child: FloatingActionButton(
                   onPressed: () {
                     game.jump();
@@ -489,7 +363,6 @@ class MyGameWidget extends StatelessWidget {
           ],
         ),
       ),
-      title: "Action Runner",
     );
   }
 }

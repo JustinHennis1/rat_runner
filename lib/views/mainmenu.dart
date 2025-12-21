@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jumpnthrow/views/game.dart';
 import 'package:jumpnthrow/views/menu.dart';

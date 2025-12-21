@@ -17,7 +17,8 @@ class Animations {
     final boySheet = await Flame.images.load('boy.png');
     final actionSheet = await Flame.images.load('boy_actions.png');
     final ratsheet = await Flame.images.load('rats.png');
-    final ratsize = Vector2(372, 338);
+    final ratsize = Vector2(376, 368); // frame 1
+    final ratsize2 = Vector2(376, 328); // frame 2+3
     final spriteSize = Vector2(500, 540);
 
     // RUN animation
@@ -85,7 +86,7 @@ class Animations {
       SpriteAnimationData.sequenced(
         amount: 3,
         stepTime: .10,
-        textureSize: ratsize,
+        textureSize: ratsize2,
         texturePosition: Vector2(0, 368),
       ),
     );
@@ -96,7 +97,7 @@ class Animations {
       SpriteAnimationData.sequenced(
         amount: 3,
         stepTime: .10,
-        textureSize: ratsize,
+        textureSize: ratsize2,
         texturePosition: Vector2(0, 700),
       ),
     );

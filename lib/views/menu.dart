@@ -80,7 +80,7 @@ class _ContinueMenuState extends State<ContinueMenu> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Your Score: ${prevScore}',
+                      'Your Score: $prevScore',
                       style: const TextStyle(fontSize: 20, color: Colors.white),
                     ),
                   ],

@@ -24,15 +24,15 @@ class StickmanRunner extends FlameGame
   late SpriteAnimationComponent rat;
 
   // Game constants (unchanged)
-  final double gameSpeed = 180.0;
+  final double gameSpeed = 250.0;
   final double gravity = 980.0;
   final double jumpForce = -500.0;
   final double lungeForce = 400.0;
 
-  final int boy_y = 210;
-  final int boy_x = 10;
-  final int rat_y = 210;
-  final int rat_x = 10;
+  final int boy_y = 180; //80
+  final int boy_x = 10; //120
+  final int rat_y = 180; //80
+  final int rat_x = 100; //210
 
   // UI
   late SpriteComponent scoreBackdrop;
@@ -47,17 +47,21 @@ class StickmanRunner extends FlameGame
   // Centralized state
   final GameState state = GameState();
 
+  // Track previous size for orientation changes
+  Vector2? _previousSize;
+  bool isLandscape = false;
+
   @override
   Future<void> onLoad() async {
     final parallax = await loadParallax(
-      [ParallaxImageData('background.jpg')],
+      [ParallaxImageData('background1.png')],
       baseVelocity: Vector2(gameSpeed, 0),
       velocityMultiplierDelta: Vector2(1, 1),
     );
-
+    // Specs for 2nd backgorund
     parallaxBackground = ParallaxComponent(parallax: parallax)
-      ..scale = Vector2(2, 2)
-      ..position = Vector2(0, -900);
+    ..scale = Vector2(1, 1)
+    ..position = Vector2(0, 0);
 
     add(parallaxBackground);
 
@@ -127,6 +131,52 @@ class StickmanRunner extends FlameGame
 
     add(boy);
     add(rat);
+
+    _previousSize = size.clone();
+  }
+
+  @override
+  void onGameResize(Vector2 newSize) {
+    super.onGameResize(newSize);
+    
+    isLandscape = newSize.x > newSize.y;
+
+    if (_previousSize != null) {
+      _handleOrientationChange(newSize);
+    }
+    _previousSize = newSize.clone();
+  }
+
+  void _handleOrientationChange(Vector2 newSize) {
+    // Update boy position - accounting for bottomLeft anchor
+    // With bottomLeft anchor, position.y represents the bottom of the sprite
+    boy.position.y = newSize.y - boy_y;
+    
+    // Keep boy x position relative if not at base position
+    if (state.isLunging || boy.position.x > boy_x) {
+      // Maintain relative position during lunge
+      final relativeX = boy.position.x / _previousSize!.x;
+      boy.position.x = relativeX * newSize.x;
+    } else {
+      boy.position.x = boy_x.toDouble();
+    }
+
+    // Update rat position if mounted
+    if (rat.isMounted) {
+      // Rat has bottomRight anchor, so position represents bottom-right corner
+      // Position it on the right side of screen
+      rat.position.x = newSize.x - rat_x;
+      rat.position.y = newSize.y - rat_y;
+    }
+
+    // Update UI elements
+    scoreBackdrop.position = Vector2(newSize.x/2, 50);
+    scoreBackdrop.size = Vector2(newSize.x, 120);
+    scoreText.position = Vector2(newSize.x/2, 80);
+    
+    // Position health text relative to screen bottom
+    healthText.position = Vector2(boy_x.toDouble(), newSize.y - 150);
+    rathealthText.position = Vector2(newSize.x - 150, newSize.y - 150);
   }
 
   @override
@@ -257,7 +307,7 @@ class StickmanRunner extends FlameGame
       PlayerController.setJump(boy);
       state.velocityY = jumpForce;
 
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 200), () {
         state.isJumping = false;
       });
     }
@@ -300,8 +350,8 @@ class StickmanRunner extends FlameGame
     );
 
     add(rat);
-    rat.position.y = size.y - 200;
-    rat.position.x = size.x - 100;
+    rat.position.y = size.y - rat_y;
+    rat.position.x = size.x - rat_x;
   }
 }
 

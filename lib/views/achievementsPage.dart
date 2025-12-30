@@ -77,7 +77,7 @@ class _AchievementTileState extends State<AchievementTile>
     _scaleAnim = CurvedAnimation(parent: _controller, curve: Curves.elasticOut);
 
     if (widget.unlocked) {
-      _controller.forward();
+      _controller.value = 1.0; // already unlocked → visible
     }
   }
 
@@ -97,15 +97,15 @@ class _AchievementTileState extends State<AchievementTile>
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.unlocked ? Colors.amber : Colors.grey.shade700;
+    final color = widget.unlocked ? Colors.amber : Colors.grey.shade500;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 300),
-        opacity: widget.unlocked ? 1.0 : 0.6,
-        child: ScaleTransition(
-          scale: _scaleAnim,
+        opacity: widget.unlocked ? 1.0 : 0.65,
+        child: Transform.scale(
+          scale: widget.unlocked ? _scaleAnim.value : 1.0,
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpnthrow/views/achievementsPage.dart';
 import 'package:jumpnthrow/views/game.dart';
 import 'package:jumpnthrow/views/menu.dart';
 import 'package:jumpnthrow/views/settings.dart';
@@ -29,7 +30,54 @@ class _MainMenuState extends State<MainMenu> {
 
   @override
   Widget build(BuildContext context) {
-     final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final Set<String> unlockedAchievements = {
+      'first_jump',
+      'first_run',
+      'distance_100',
+      'runs_5',
+      'boss_kills_10',
+    };
+    final Map<String, int> achievementProgress = {
+      // Early game
+      'first_jump': 1,
+      'first_kill': 0,
+      'first_death': 1,
+      'first_shot': 1,
+      'first_run': 1,
+      'first_heal': 0,
+
+      // Distance milestones
+      'distance_100': 100,
+      'distance_1000': 640,
+      'distance_10000': 3200,
+      'distance_50000': 12000,
+      'distance_100000': 45000,
+      'distance_200000': 78000,
+
+      // Runs
+      'runs_5': 5,
+      'runs_10': 7,
+      'runs_50': 23,
+      'runs_100': 48,
+      'runs_200': 73,
+
+      // Skill — no damage
+      'no_damage_100': 100,
+      'no_damage_1000': 450,
+      'no_damage_10000': 2100,
+      'no_damage_50000': 9000,
+      'no_damage_100000': 12000,
+      'no_damage_200000': 24000,
+
+      // Boss kills
+      'boss_kills_10': 10,
+      'boss_kills_25': 14,
+      'boss_kills_75': 31,
+      'boss_kills_100': 48,
+      'boss_kills_150': 92,
+    };
 
     return Scaffold(
       body: Stack(
@@ -43,7 +91,9 @@ class _MainMenuState extends State<MainMenu> {
             ),
           ),
           SafeArea(
-            minimum: isLandscape ? EdgeInsets.only(right: 32.0): EdgeInsets.zero,
+            minimum: isLandscape
+                ? EdgeInsets.only(right: 32.0)
+                : EdgeInsets.zero,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -65,77 +115,81 @@ class _MainMenuState extends State<MainMenu> {
                 ),
                 Flexible(
                   child: Container(
-                      constraints: BoxConstraints(maxHeight: 350),
-                      child: Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: AssetImage('assets/images/pgdesign.png'),
-                                fit: BoxFit.fitHeight,
-                              ),
+                    constraints: BoxConstraints(maxHeight: 350),
+                    child: Stack(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/pgdesign.png'),
+                              fit: BoxFit.fitHeight,
                             ),
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: isLandscape ? [
-                                  Text(
-                                    'Rat',
-                                    style: TextStyle(
-                                      fontSize: 60,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.normal,
-                                      fontFamily: 'Gamer',
-                                    ),
-                                  )
-                                ] : [
-                                  Text(
-                                    'Rat',
-                                    style: TextStyle(
-                                      fontSize: 120,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.normal,
-                                      fontFamily: 'Gamer',
-                                    ),
-                                  ),
-                                  SizedBox(width:  50),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: isLandscape ? [
-                                  Text(
-                                    'Run',
-                                    style: TextStyle(
-                                      fontSize: 60 ,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.normal,
-                                      fontFamily: 'Gamer',
-                                      fontStyle: FontStyle.normal,
-                                    ),
-                                  ),
-                                ] : [
-                                  SizedBox(width: 50),
-                                  Text(
-                                    'Run',
-                                    style: TextStyle(
-                                      fontSize: 120,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.normal,
-                                      fontFamily: 'Gamer',
-                                      fontStyle: FontStyle.normal,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: isLandscape
+                                  ? [
+                                      Text(
+                                        'Rat',
+                                        style: TextStyle(
+                                          fontSize: 60,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.normal,
+                                          fontFamily: 'Gamer',
+                                        ),
+                                      ),
+                                    ]
+                                  : [
+                                      Text(
+                                        'Rat',
+                                        style: TextStyle(
+                                          fontSize: 120,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.normal,
+                                          fontFamily: 'Gamer',
+                                        ),
+                                      ),
+                                      SizedBox(width: 50),
+                                    ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: isLandscape
+                                  ? [
+                                      Text(
+                                        'Run',
+                                        style: TextStyle(
+                                          fontSize: 60,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.normal,
+                                          fontFamily: 'Gamer',
+                                          fontStyle: FontStyle.normal,
+                                        ),
+                                      ),
+                                    ]
+                                  : [
+                                      SizedBox(width: 50),
+                                      Text(
+                                        'Run',
+                                        style: TextStyle(
+                                          fontSize: 120,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.normal,
+                                          fontFamily: 'Gamer',
+                                          fontStyle: FontStyle.normal,
+                                        ),
+                                      ),
+                                    ],
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -143,7 +197,17 @@ class _MainMenuState extends State<MainMenu> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
-                        onPressed: () async {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AchievementsPage(
+                                unlockedAchievements: unlockedAchievements,
+                                progress: achievementProgress,
+                              ),
+                            ),
+                          );
+                        },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Icon(Icons.add_chart, size: 36),
@@ -174,20 +238,26 @@ class _MainMenuState extends State<MainMenu> {
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ContinueMenu(lastscore: score),
+                              builder: (context) =>
+                                  ContinueMenu(lastscore: score),
                             ),
                           );
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: const Text('Play', style: TextStyle(fontSize: 24)),
+                          child: const Text(
+                            'Play',
+                            style: TextStyle(fontSize: 24),
+                          ),
                         ),
                       ),
                       ElevatedButton(
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => GameSettings()),
+                            MaterialPageRoute(
+                              builder: (context) => GameSettings(),
+                            ),
                           );
                         },
                         child: Padding(

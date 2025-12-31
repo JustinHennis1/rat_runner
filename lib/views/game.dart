@@ -29,10 +29,10 @@ class StickmanRunner extends FlameGame
   final double jumpForce = -500.0;
   final double lungeForce = 400.0;
 
-  final int boy_y = 180; //80
-  final int boy_x = 10; //120
-  final int rat_y = 180; //80
-  final int rat_x = 100; //210
+  int boy_y = 180; //80
+  int boy_x = 10; //120
+  int rat_y = 180; //80
+  int rat_x = 100; //210
 
   // UI
   late SpriteComponent scoreBackdrop;
@@ -148,6 +148,19 @@ class StickmanRunner extends FlameGame
   }
 
   void _handleOrientationChange(Vector2 newSize) {
+
+    if(isLandscape){
+        boy_y = 80;
+        boy_x = 120;
+        rat_y = 80;
+        rat_x = 210;
+    } else {
+      boy_y = 180;
+      boy_x = 10;
+      rat_y = 180;
+      rat_x = 100;
+    }
+
     // Update boy position - accounting for bottomLeft anchor
     // With bottomLeft anchor, position.y represents the bottom of the sprite
     boy.position.y = newSize.y - boy_y;
@@ -197,7 +210,7 @@ class StickmanRunner extends FlameGame
     }
 
     // Jump physics
-    if (state.isJumping || boy.position.y < size.y - 150) {
+    if (state.isJumping || boy.position.y < size.y - boy_y) {
       state.velocityY += gravity * dt;
       boy.position.y += state.velocityY * dt;
 

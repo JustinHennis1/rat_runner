@@ -37,7 +37,7 @@ class _MainMenuState extends State<MainMenu> {
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background.jpg'),
+                image: AssetImage('assets/images/background4.png'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -52,11 +52,12 @@ class _MainMenuState extends State<MainMenu> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      Icon(Icons.run_circle_outlined,color: Colors.white, size: 42,),
                       Text(
-                        'High Score: $highScore',
+                        ' $highScore',
                         style: const TextStyle(
                           fontSize: 24,
-                          color: Color.fromARGB(255, 0, 0, 0),
+                          color: Color.fromARGB(255, 255, 255, 255),
                         ),
                       ),
                     ],

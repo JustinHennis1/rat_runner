@@ -4,6 +4,7 @@ import 'package:flame/events.dart';
 import 'package:flame/parallax.dart';
 import 'package:flutter/material.dart';
 
+import 'package:jumpnthrow/models/achievement_manager.dart';
 import 'package:jumpnthrow/models/animations.dart';
 import 'package:jumpnthrow/models/characters.dart';
 import 'package:jumpnthrow/models/collision.dart';
@@ -20,6 +21,7 @@ class StickmanRunner extends FlameGame
 
   // Core components
   late ParallaxComponent parallaxBackground;
+  late RadialGradientOverlay gradientOverlay;
   late SpriteAnimationComponent boy;
   late SpriteAnimationComponent rat;
 
@@ -51,19 +53,49 @@ class StickmanRunner extends FlameGame
   Vector2? _previousSize;
   bool isLandscape = false;
 
+  int currentBackgroundIndex = 0;
+  double timeSinceLastTransition = 0.0;
+  double timeBetweenTransitions = 30.0; // Switch every 30 seconds
+  
+  // Transition state
+  bool isTransitioning = false;
+  double transitionElapsed = 0.0;
+  double transitionDuration = 1.5; // 1.5 second fade
+
+  final backgrounds = [
+    'background_day.png',
+    'background_dawn.png',
+    'background_night.png',
+    'background_sunset.png',
+  ];
+  
+  // Preloaded parallax objects for instant switching
+  final Map<String, Parallax> _preloadedParallax = {};
+  
   @override
   Future<void> onLoad() async {
-    final parallax = await loadParallax(
-      [ParallaxImageData('background1.png')],
-      baseVelocity: Vector2(gameSpeed, 0),
-      velocityMultiplierDelta: Vector2(1, 1),
-    );
-    // Specs for 2nd backgorund
-    parallaxBackground = ParallaxComponent(parallax: parallax)
-    ..scale = Vector2(1, 1)
-    ..position = Vector2(0, 0);
+    // Preload ALL backgrounds at startup
+    for (final bg in backgrounds) {
+      _preloadedParallax[bg] = await loadParallax(
+        [ParallaxImageData(bg)],
+        baseVelocity: Vector2(gameSpeed, 0),
+        velocityMultiplierDelta: Vector2(1, 1),
+      );
+    }
+
+    // Set initial background
+    parallaxBackground = ParallaxComponent(
+      parallax: _preloadedParallax[backgrounds[currentBackgroundIndex]]!,
+    )
+      ..scale = Vector2(1, 1)
+      ..position = Vector2(0, 0)
+      ..priority = -100;
 
     add(parallaxBackground);
+
+    // Add gradient overlay
+    gradientOverlay = RadialGradientOverlay();
+    add(gradientOverlay);
 
     scoreBackdrop = SpriteComponent(
       sprite: await loadSprite('pgdesign.png'),
@@ -196,9 +228,60 @@ class StickmanRunner extends FlameGame
   void update(double dt) {
     super.update(dt);
 
-    // Distance / score
+    // Distance
     state.distance += speed * dt;
-    scoreText.text = '${state.distance.toInt()}';
+    final distanceInt = state.distance.toInt();
+
+    // Save every 25 meters (tweakable)
+    if (distanceInt - state.lastSavedDistance >= 25) {
+      state.lastSavedDistance = distanceInt;
+
+      AchievementManager.setProgress('distance_100', distanceInt);
+      AchievementManager.setProgress('distance_1000', distanceInt);
+      AchievementManager.setProgress('distance_10000', distanceInt);
+      AchievementManager.setProgress('distance_50000', distanceInt);
+      AchievementManager.setProgress('distance_100000', distanceInt);
+      AchievementManager.setProgress('distance_200000', distanceInt);
+    }
+
+    // No-damage distance
+    if (state.health == 100) {
+      state.noDamageDistance += speed * dt;
+      final noDamageInt = state.noDamageDistance.toInt();
+
+      if (noDamageInt - state.lastSavedNoDamageDistance >= 25) {
+        state.lastSavedNoDamageDistance = noDamageInt;
+
+        AchievementManager.setProgress('no_damage_100', noDamageInt);
+        AchievementManager.setProgress('no_damage_1000', noDamageInt);
+        AchievementManager.setProgress('no_damage_10000', noDamageInt);
+      }
+    } else {
+      state.noDamageDistance = 0;
+      state.lastSavedNoDamageDistance = 0;
+    }
+
+    // Safely convert to int for display
+    try {
+      scoreText.text = '${state.distance.toInt()}';
+    } catch (e) {
+      scoreText.text = '999999';
+      state.distance = 999999;
+    }
+
+    // Time-based background transitions
+    if (!isTransitioning) {
+      timeSinceLastTransition += dt;
+      if (timeSinceLastTransition >= timeBetweenTransitions) {
+        _startTransition();
+        timeSinceLastTransition = 0.0;
+      }
+    }
+
+    // Update transition animation
+    if (isTransitioning) {
+      _updateTransition(dt);
+    }
 
     // Enemy shooting
     state.enemyShootTimer += dt;
@@ -272,15 +355,85 @@ class StickmanRunner extends FlameGame
 
     // End conditions
     if (state.health <= 0) {
-      onGameEnd(state.distance.toInt());
+      AchievementManager.incrementProgress('first_death', 1);
+      AchievementManager.incrementProgress('first_run', 1);
+
+      AchievementManager.incrementProgress('runs_5', 1);
+      AchievementManager.incrementProgress('runs_10', 1);
+      AchievementManager.incrementProgress('runs_50', 1);
+      AchievementManager.incrementProgress('runs_100', 1);
+      AchievementManager.incrementProgress('runs_200', 1);
+      try {
+        onGameEnd(state.distance.toInt());
+      } catch (e) {
+        onGameEnd(999999);
+      }
       pauseEngine();
     } else if (state.ratHealth <= 0) {
+      AchievementManager.incrementProgress('first_kill', 1);
+      AchievementManager.incrementProgress('boss_kills_10', 1);
+      AchievementManager.incrementProgress('boss_kills_25', 1);
+      AchievementManager.incrementProgress('boss_kills_75', 1);
+      AchievementManager.incrementProgress('boss_kills_100', 1);
+      AchievementManager.incrementProgress('boss_kills_150', 1);
       if (rat.isMounted) {
         remove(rat);
       }
       spawn();
-      state.distance *= 1.5;
+      // Add bonus distance instead of multiplying
+      state.distance += 1000 + (state.level * 100);
     }
+  }
+
+  void _startTransition() {
+    isTransitioning = true;
+    transitionElapsed = 0.0;
+    gradientOverlay.gradientColor = Colors.black;
+  }
+
+  void _updateTransition(double dt) {
+    transitionElapsed += dt;
+    final progress = (transitionElapsed / transitionDuration).clamp(0.0, 1.0);
+
+    if (progress < 0.5) {
+      // First half: fade to black
+      final fadeProgress = progress * 2.0; // 0.0 to 1.0
+      gradientOverlay.opacity = fadeProgress;
+    } else {
+      // Midpoint: switch background
+      if (progress >= 0.5 && progress < 0.52) {
+        _switchBackground();
+      }
+      
+      // Second half: fade from black
+      final fadeProgress = (progress - 0.5) * 2.0; // 0.0 to 1.0
+      gradientOverlay.opacity = 1.0 - fadeProgress;
+    }
+
+    // Complete transition
+    if (progress >= 1.0) {
+      gradientOverlay.opacity = 0.0;
+      isTransitioning = false;
+      transitionElapsed = 0.0;
+    }
+  }
+
+  void _switchBackground() {
+    // Remove old background
+    parallaxBackground.removeFromParent();
+    
+    // Move to next background
+    currentBackgroundIndex = (currentBackgroundIndex + 1) % backgrounds.length;
+    
+    // Create new background from preloaded parallax
+    parallaxBackground = ParallaxComponent(
+      parallax: _preloadedParallax[backgrounds[currentBackgroundIndex]]!,
+    )
+      ..scale = Vector2(1, 1)
+      ..position = Vector2(0, 0)
+      ..priority = -100;
+    
+    add(parallaxBackground);
   }
 
   Future<void> setAttacked(int level) async {
@@ -298,9 +451,9 @@ class StickmanRunner extends FlameGame
       );
     } else {
       projectileSprite = Sprite(
-        ratsheet,
-        srcPosition: Vector2(380 * 3, 0),
-        srcSize: spriteSize,
+          ratsheet,
+          srcPosition: Vector2(380 * 3, 0),
+          srcSize:  spriteSize,
       );
     }
 
@@ -316,6 +469,7 @@ class StickmanRunner extends FlameGame
 
   void jump() {
     if (!state.isJumping && boy.position.y >= size.y - 250) {
+      AchievementManager.incrementProgress('first_jump', 1);
       state.isJumping = true;
       PlayerController.setJump(boy);
       state.velocityY = jumpForce;
@@ -335,6 +489,8 @@ class StickmanRunner extends FlameGame
 
   void shoot() {
     if (state.isShooting) return;
+
+    AchievementManager.incrementProgress('first_shot', 1);
 
     final projectile = PlayerController.shoot(boy.position);
     state.isShooting = true;
@@ -379,11 +535,9 @@ class MyGameWidget extends StatelessWidget {
       onGameEnd: (score) {
         Navigator.pop(context, score);
       },
-
-      
     );
 
-  final GameSettings settings = GameSettings();
+    final GameSettings settings = GameSettings();
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -393,14 +547,14 @@ class MyGameWidget extends StatelessWidget {
             GameWidget(game: game),
             Positioned(
               bottom: 20,
-                left: GameSettingsModel.leftHanded ? 20 : null,
-                right: GameSettingsModel.leftHanded ? null : 20,
+              left: GameSettingsModel.leftHanded ? 20 : null,
+              right: GameSettingsModel.leftHanded ? null : 20,
               child: SizedBox(
                 height: GameSettingsModel.buttonSize,
                 width: GameSettingsModel.buttonSize,
                 child: FloatingActionButton(
                   onPressed: () {
-                    game.shoot(); // Changed to shoot projectiles
+                    game.shoot();
                   },
                   heroTag: "attack",
                   child: Icon(Icons.flash_on),
@@ -409,8 +563,8 @@ class MyGameWidget extends StatelessWidget {
             ),
             Positioned(
               bottom: 20,
-                left: GameSettingsModel.leftHanded ? null : 20,
-                right: GameSettingsModel.leftHanded ? 20 : null,
+              left: GameSettingsModel.leftHanded ? null : 20,
+              right: GameSettingsModel.leftHanded ? 20 : null,
               child: SizedBox(
                 height: GameSettingsModel.buttonSize,
                 width: GameSettingsModel.buttonSize,

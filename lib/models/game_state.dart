@@ -14,7 +14,11 @@ class GameState {
   double ratHealth = 100;
 
   // Progress
+  int lastSavedDistance = 0;
+  int lastSavedNoDamageDistance = 0;
+
   double distance = 0;
+  double noDamageDistance = 0;
   int level = 1;
 
   // Enemy shooting

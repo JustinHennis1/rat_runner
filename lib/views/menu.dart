@@ -75,7 +75,7 @@ class _ContinueMenuState extends State<ContinueMenu>
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background4.png'),
+                image: AssetImage('assets/images/background_night.png'),
                 fit: BoxFit.cover,
               ),
             ),

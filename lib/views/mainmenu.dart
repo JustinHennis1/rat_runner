@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpnthrow/models/achievement_manager.dart';
 import 'package:jumpnthrow/views/achievementsPage.dart';
 import 'package:jumpnthrow/views/game.dart';
 import 'package:jumpnthrow/views/menu.dart';
@@ -14,17 +15,23 @@ class MainMenu extends StatefulWidget {
 
 class _MainMenuState extends State<MainMenu> {
   int highScore = 0;
+  Set<String> unlockedAchievements = {};
+  Map<String, int> achievementProgress = {};
 
   @override
   void initState() {
     super.initState();
-    _loadHighScore();
+    _loadStats();
   }
 
-  Future<void> _loadHighScore() async {
+  Future<void> _loadStats() async {
     final prefs = await SharedPreferences.getInstance();
+    final unlocked = await AchievementManager.loadUnlockedAchievements();
+    final progress = await AchievementManager.loadProgress();
     setState(() {
       highScore = prefs.getInt('highScore') ?? 0;
+      unlockedAchievements = unlocked;
+      achievementProgress = progress;
     });
   }
 
@@ -32,52 +39,6 @@ class _MainMenuState extends State<MainMenu> {
   Widget build(BuildContext context) {
     final bool isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    final Set<String> unlockedAchievements = {
-      'first_jump',
-      'first_run',
-      'distance_100',
-      'runs_5',
-      'boss_kills_10',
-    };
-    final Map<String, int> achievementProgress = {
-      // Early game
-      'first_jump': 1,
-      'first_kill': 0,
-      'first_death': 1,
-      'first_shot': 1,
-      'first_run': 1,
-      'first_heal': 0,
-
-      // Distance milestones
-      'distance_100': 100,
-      'distance_1000': 640,
-      'distance_10000': 3200,
-      'distance_50000': 12000,
-      'distance_100000': 45000,
-      'distance_200000': 78000,
-
-      // Runs
-      'runs_5': 5,
-      'runs_10': 7,
-      'runs_50': 23,
-      'runs_100': 48,
-      'runs_200': 73,
-
-      // Skill — no damage
-      'no_damage_100': 100,
-      'no_damage_1000': 450,
-      'no_damage_10000': 2100,
-      'no_damage_50000': 9000,
-      'no_damage_100000': 12000,
-      'no_damage_200000': 24000,
-
-      // Boss kills
-      'boss_kills_10': 10,
-      'boss_kills_25': 14,
-      'boss_kills_75': 31,
-      'boss_kills_100': 48,
-      'boss_kills_150': 92,
-    };
 
     return Scaffold(
       body: Stack(
@@ -85,7 +46,7 @@ class _MainMenuState extends State<MainMenu> {
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background4.png'),
+                image: AssetImage('assets/images/background_night.png'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -232,7 +193,7 @@ class _MainMenuState extends State<MainMenu> {
                             }
                             // testing reset highscore
                             //await prefs.setInt('highScore', 0);
-                            _loadHighScore(); // Refresh displayed high score
+                            _loadStats(); // Refresh displayed high score
                           }
 
                           await Navigator.push(

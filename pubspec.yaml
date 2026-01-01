@@ -67,10 +67,10 @@ flutter:
     - assets/images/boy.png
     - assets/images/boy_actions.png
     - assets/images/background.jpg
-    - assets/images/background1.png
-    - assets/images/background2.png
-    - assets/images/background3.png
-    - assets/images/background4.png
+    - assets/images/background_day.png
+    - assets/images/background_dawn.png
+    - assets/images/background_night.png
+    - assets/images/background_sunset.png
     - assets/images/pgdesign.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

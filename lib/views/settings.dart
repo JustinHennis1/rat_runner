@@ -20,7 +20,7 @@ class _GameSettingsState extends State<GameSettings> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background4.png'),
+                image: AssetImage('assets/images/background_night.png'),
                 fit: BoxFit.cover,
               ),
             ),

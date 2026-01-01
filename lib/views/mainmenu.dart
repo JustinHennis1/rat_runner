@@ -158,6 +158,18 @@ class _MainMenuState extends State<MainMenu> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              WidgetStatePropertyAll(Colors.grey[900]!),
+                          shape: WidgetStatePropertyAll(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(24),
+                                topRight: Radius.circular(24)
+                              ),
+                            ),
+                          ),
+                        ),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -171,10 +183,19 @@ class _MainMenuState extends State<MainMenu> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Icon(Icons.add_chart, size: 36),
+                          child: Icon(Icons.add_chart, size: 36, color: Colors.white,),
                         ),
                       ),
                       ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              WidgetStatePropertyAll(Colors.grey[900]!),
+                          shape: WidgetStatePropertyAll(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all( Radius.circular(12) ),
+                            ),
+                          ),
+                        ),
                         onPressed: () async {
                           // Navigate to the game and wait for the final score
                           final score = await Navigator.push<int>(
@@ -208,11 +229,23 @@ class _MainMenuState extends State<MainMenu> {
                           padding: const EdgeInsets.all(8.0),
                           child: const Text(
                             'Play',
-                            style: TextStyle(fontSize: 24),
+                            style: TextStyle(fontSize: 34, color: Colors.white, fontFamily: 'Gamer'),
                           ),
                         ),
                       ),
                       ElevatedButton(
+                        style: ButtonStyle(
+                          shape: WidgetStatePropertyAll(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.only(
+                                bottomRight: Radius.circular(24),
+                                topLeft: Radius.circular(24),
+                              ),
+                            ),
+                          ),
+                          backgroundColor:
+                              WidgetStatePropertyAll(Colors.grey[900]!),
+                        ),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -223,7 +256,7 @@ class _MainMenuState extends State<MainMenu> {
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Icon(Icons.settings, size: 36),
+                          child: Icon(Icons.settings, size: 36, color: Colors.white,),
                         ),
                       ),
                     ],

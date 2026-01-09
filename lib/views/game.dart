@@ -11,6 +11,7 @@ import 'package:jumpnthrow/models/collision.dart';
 import 'package:jumpnthrow/models/enemy_controller.dart';
 import 'package:jumpnthrow/models/game_settings_model.dart';
 import 'package:jumpnthrow/models/game_state.dart';
+import 'package:jumpnthrow/models/health_bar.dart';
 import 'package:jumpnthrow/models/player_controller.dart';
 import 'package:jumpnthrow/views/settings.dart';
 
@@ -23,7 +24,8 @@ class StickmanRunner extends FlameGame
   late ParallaxComponent parallaxBackground;
   late RadialGradientOverlay gradientOverlay;
   late SpriteAnimationComponent boy;
-  late SpriteAnimationComponent rat;
+  late Enemy rat;
+  late PositionComponent hud;
 
   // Game constants (unchanged)
   final double gameSpeed = 250.0;
@@ -39,8 +41,8 @@ class StickmanRunner extends FlameGame
   // UI
   late SpriteComponent scoreBackdrop;
   late TextComponent scoreText;
-  late TextComponent healthText;
-  late TextComponent rathealthText;
+  late HealthBar playerHealthBar;
+  late HealthBar enemyHealthBar;
 
   // Gameplay values
   double speed = 100;
@@ -74,6 +76,12 @@ class StickmanRunner extends FlameGame
   
   @override
   Future<void> onLoad() async {
+
+    hud = PositionComponent()
+      ..priority = 1000; // always on top
+
+    camera.viewport.add(hud);
+
     // Preload ALL backgrounds at startup
     for (final bg in backgrounds) {
       _preloadedParallax[bg] = await loadParallax(
@@ -118,35 +126,24 @@ class StickmanRunner extends FlameGame
       ),
     );
 
-    healthText = TextComponent(
-      text: 'Health: 100',
-      position: Vector2(boy_x.toDouble(), boy_y + 500),
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+    playerHealthBar = HealthBar(
+      maxHealth: 100,
+      currentHealth: state.health.toDouble(),
+      size: Vector2(100, 18),
+      position: Vector2(20, size.y - 140),
     );
 
-    rathealthText = TextComponent(
-      text: 'Health: 100',
-      position: Vector2(rat_x.toDouble() + 270, rat_y.toDouble() + 500),
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          color: Colors.black,
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+    enemyHealthBar = HealthBar(
+      maxHealth: 100,
+      currentHealth: state.ratHealth.toDouble(),
+      size: Vector2(100, 18),
+      position: Vector2(size.x - 20, size.y - 140),
     );
 
+    hud.add(playerHealthBar);
+    hud.add(enemyHealthBar);
     add(scoreBackdrop);
     add(scoreText);
-    add(healthText);
-    add(rathealthText);
-
     await Animations.load();
 
     boy = Player(
@@ -212,6 +209,12 @@ class StickmanRunner extends FlameGame
       // Position it on the right side of screen
       rat.position.x = newSize.x - rat_x;
       rat.position.y = newSize.y - rat_y;
+
+      // Adjust for knight scaling and offset
+      if(rat.animation == Animations.cheeseKnightRat || rat.animation == Animations.clockworkRat){
+        rat.position.x -= 70;
+        rat.position.y += 30;
+      }
     }
 
     // Update UI elements
@@ -220,8 +223,8 @@ class StickmanRunner extends FlameGame
     scoreText.position = Vector2(newSize.x/2, 80);
     
     // Position health text relative to screen bottom
-    healthText.position = Vector2(boy_x.toDouble(), newSize.y - 150);
-    rathealthText.position = Vector2(newSize.x - 150, newSize.y - 150);
+    playerHealthBar.position = Vector2(boy_x.toDouble(), newSize.y - 150);
+    enemyHealthBar.position = Vector2(newSize.x - rat_x - 20, newSize.y - 150);
   }
 
   @override
@@ -255,6 +258,9 @@ class StickmanRunner extends FlameGame
         AchievementManager.setProgress('no_damage_100', noDamageInt);
         AchievementManager.setProgress('no_damage_1000', noDamageInt);
         AchievementManager.setProgress('no_damage_10000', noDamageInt);
+        AchievementManager.setProgress('no_damage_50000', noDamageInt);
+        AchievementManager.setProgress('no_damage_100000', noDamageInt);
+        AchievementManager.setProgress('no_damage_200000', noDamageInt);
       }
     } else {
       state.noDamageDistance = 0;
@@ -285,8 +291,25 @@ class StickmanRunner extends FlameGame
 
     // Enemy shooting
     state.enemyShootTimer += dt;
-    if (state.enemyShootTimer >= state.enemyShootInterval) {
+
+    if (state.enemyShootTimer >= state.enemyShootInterval &&
+        !rat.getAttacking()) {
+
+      rat.setAttacking(true);
+
+      final idleAnimation = rat.animation;
+
+      rat.animation =
+          EnemyController.getAttackAnimation(rat.enemyLevel);
+
+      // onComplete MUST be set on the ticker
+      rat.animationTicker?.onComplete = () {
+        rat.animation = idleAnimation;
+        rat.setAttacking(false);
+      };
+
       setAttacked(state.level);
+
       state.enemyShootTimer = 0;
       state.enemyShootInterval =
           1.5 + state.random.nextDouble() * 1.5;
@@ -339,7 +362,7 @@ class StickmanRunner extends FlameGame
         projectile.removeFromParent();
         state.projectiles.remove(projectile);
         state.ratHealth -= 20;
-        rathealthText.text = 'Health: ${state.ratHealth}';
+        enemyHealthBar.setHealth(state.ratHealth.toDouble());
       }
     }
 
@@ -349,7 +372,7 @@ class StickmanRunner extends FlameGame
         projectile.removeFromParent();
         state.enemyProjectiles.remove(projectile);
         state.health -= 20;
-        healthText.text = 'Health: ${state.health}';
+        playerHealthBar.setHealth(state.health.toDouble());
       }
     }
 
@@ -439,23 +462,10 @@ class StickmanRunner extends FlameGame
   Future<void> setAttacked(int level) async {
     if (!rat.isMounted) return;
 
-    final ratsheet = images.fromCache('rats.png');
-    final spriteSize = Vector2(380, 380);
-
     Sprite projectileSprite;
-    if (level <= 3) {
-      projectileSprite = Sprite(
-        ratsheet,
-        srcPosition: Vector2(380 * 3, level * 320 - 320),
-        srcSize: spriteSize,
-      );
-    } else {
-      projectileSprite = Sprite(
-          ratsheet,
-          srcPosition: Vector2(380 * 3, 0),
-          srcSize:  spriteSize,
-      );
-    }
+
+    projectileSprite = EnemyController.getProjectileSprite(level);
+    
 
     final projectile = EnemyController.createProjectile(
       projectileSprite,
@@ -509,7 +519,7 @@ class StickmanRunner extends FlameGame
 
     state.level += 1;
     state.ratHealth = 100;
-    rathealthText.text = 'Health: ${state.ratHealth}';
+    enemyHealthBar.setHealth(100);
 
     rat = EnemyController.spawnEnemy(
       size,
@@ -521,6 +531,12 @@ class StickmanRunner extends FlameGame
     add(rat);
     rat.position.y = size.y - rat_y;
     rat.position.x = size.x - rat_x;
+    if(rat.animation == Animations.cheeseKnightRat || rat.animation == Animations.clockworkRat){
+      rat.scale = Vector2.all(1.5);
+      rat.position.x -= 70;
+      rat.position.y += 30;
+      rat.flipHorizontally();
+    }
   }
 }
 

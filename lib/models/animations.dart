@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
+import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
 
 class Animations {
@@ -10,9 +11,23 @@ class Animations {
   static late SpriteAnimation attack;
   static late SpriteAnimation block;
   static late SpriteAnimation jump;
-  static late SpriteAnimation enemyFireball;
-  static late SpriteAnimation enemyFireball2;
-  static late SpriteAnimation enemyPoisonball;
+  static late SpriteAnimation blueFireRat;
+  static late SpriteAnimation redFireRat;
+  static late SpriteAnimation purplePoisonRat;
+  static late SpriteAnimation cheeseKnightRat;
+  static late SpriteAnimation clockworkRat;
+  static late SpriteAnimation blueFireRatAttacking;
+  static late SpriteAnimation redFireRatAttacking;
+  static late SpriteAnimation purplePoisonRatAttacking;
+  static late SpriteAnimation cheeseKnightRatAttacking;
+  static late SpriteAnimation clockworkRatAttacking;
+  static late Sprite blueFireball;
+  static late Sprite redFireball;
+  static late Sprite poisonball;
+  static late Sprite swordSlash;
+  static late Sprite cheeseShockwave;
+  static late Sprite clockworkGear;
+
 
   // Preload everything
   static Future<void> load() async {
@@ -20,9 +35,22 @@ class Animations {
     final boySheet = await Flame.images.load('boy.png');
     final actionSheet = await Flame.images.load('boy_actions.png');
     final ratsheet = await Flame.images.load('rats.png');
+    final knightSheet = await Flame.images.load('cheese_knight.png');
+    final clockworkSheet = await Flame.images.load('clockwork_rat.png');
+    final projectileSheet = await Flame.images.load('projectiles.png');
     final ratsize = Vector2(376, 368); // frame 1
     final ratsize2 = Vector2(376, 328); // frame 2+3
+    final knightSize = Vector2(153.7, 136);
     final spriteSize = Vector2(500, 540);
+    final projectileSize = Vector2(380, 380);
+    final cheeseKnightSpriteSheet = SpriteSheet(
+      image: knightSheet,
+      srcSize: knightSize,
+    );
+    final clockworkSpriteSheet = SpriteSheet(
+      image: clockworkSheet,
+      srcSize: knightSize,
+    );
 
     // RUN animation
     run = SpriteAnimation.fromFrameData(
@@ -36,7 +64,7 @@ class Animations {
       ),
     );
 
-    // ATTACK animation
+    // Boy Attack Position
     attack = SpriteAnimation.fromFrameData(
       actionSheet,
       SpriteAnimationData.sequenced(
@@ -48,7 +76,7 @@ class Animations {
       ),
     );
 
-    // BLOCK animation
+    // Boy Block Position animation
     block = SpriteAnimation.fromFrameData(
       actionSheet,
       SpriteAnimationData.sequenced(
@@ -60,7 +88,7 @@ class Animations {
       ),
     );
 
-    // JUMP animation
+    // Boy Jump Position animation
     jump = SpriteAnimation.fromFrameData(
       actionSheet,
       SpriteAnimationData.sequenced(
@@ -72,38 +100,143 @@ class Animations {
       ),
     );
 
-    //FIREBALL animation
-    enemyFireball = SpriteAnimation.fromFrameData(
+    //Rat firing Position animation
+    blueFireRat = SpriteAnimation.fromFrameData(
       ratsheet,
       SpriteAnimationData.sequenced(
-        amount: 3,
+        amount: 1,
         stepTime: .10,
         textureSize: ratsize,
         texturePosition: Vector2(0, 0),
+        loop: false,
       ),
     );
 
-    //FIREBALL animation
-    enemyFireball2 = SpriteAnimation.fromFrameData(
+    blueFireRatAttacking = SpriteAnimation.fromFrameData(
       ratsheet,
       SpriteAnimationData.sequenced(
-        amount: 3,
+        amount: 2,
         stepTime: .10,
-        textureSize: ratsize2,
-        texturePosition: Vector2(0, 368),
+        textureSize: ratsize,
+        texturePosition: Vector2(376, 0),
+        loop: false,
       ),
     );
 
-    //FIREBALL animation
-    enemyPoisonball = SpriteAnimation.fromFrameData(
+    //Rat firing Position animation
+    redFireRat = SpriteAnimation.fromFrameData(
       ratsheet,
       SpriteAnimationData.sequenced(
-        amount: 3,
+        amount: 1,
         stepTime: .10,
         textureSize: ratsize2,
-        texturePosition: Vector2(0, 700),
+        texturePosition: Vector2(0, 370),
+        loop: false,
       ),
     );
+
+    redFireRatAttacking = SpriteAnimation.fromFrameData(
+      ratsheet,
+      SpriteAnimationData.sequenced(
+        amount: 2,
+        stepTime: .10,
+        textureSize: ratsize2,
+        texturePosition: Vector2(380, 370),
+        loop: false,
+      ),
+    );
+
+    //Rat firing Position animation
+    purplePoisonRat = SpriteAnimation.fromFrameData(
+      ratsheet,
+      SpriteAnimationData.sequenced(
+        amount: 1,
+        stepTime: .10,
+        textureSize: ratsize2,
+        texturePosition: Vector2(0, 368 + 328),
+        loop: false,
+      ),
+    );
+
+    purplePoisonRatAttacking = SpriteAnimation.fromFrameData(
+      ratsheet,
+      SpriteAnimationData.sequenced(
+        amount: 2,
+        stepTime: .10,
+        textureSize: ratsize2,
+        texturePosition: Vector2(380, 368 + 328),
+        loop: false,
+      ),
+    );
+
+    // KNIGHT animation
+    cheeseKnightRat = cheeseKnightSpriteSheet.createAnimation(
+      row: 0,            // start row
+      from: 0,           // start column
+      to: 2,             // end frame
+      stepTime: 0.50,
+      loop: true,
+    );
+    cheeseKnightRatAttacking = cheeseKnightSpriteSheet.createAnimation(
+      row: 0,            // start row
+      from: 2,           // start column
+      to: 4,             // end frame
+      stepTime: 0.30,
+      loop: false,
+    );
+    // CLOCKWORK RAT animation
+    clockworkRat = clockworkSpriteSheet.createAnimation(
+      row: 0,            // start row
+      from: 0,           // start column
+      to: 1,             // end frame
+      stepTime: 0.30,
+      loop: true,
+    );
+    clockworkRatAttacking = clockworkSpriteSheet.createAnimation(
+      row: 0,            // start row
+      from: 1,           // start column
+      to: 3,             // end frame
+      stepTime: 0.30,
+      loop: false,
+    );
+
+    // Projectile Sprites
+    blueFireball = Sprite(
+        ratsheet,
+        srcPosition: Vector2(380 * 3, 0),
+        srcSize: projectileSize,
+      );
+
+    redFireball = Sprite(
+        ratsheet,
+        srcPosition: Vector2(380 * 3, 320 * 1),
+        srcSize: projectileSize,
+      );
+
+    poisonball = Sprite(
+        ratsheet,
+        srcPosition: Vector2(380 * 3, 320 * 2),
+        srcSize: projectileSize,
+      );
+
+    swordSlash = Sprite(
+        projectileSheet,
+        srcPosition: Vector2(153.7 * 0, 0),
+        srcSize: knightSize,
+      );
+
+    clockworkGear = Sprite(
+        clockworkSheet,
+        srcPosition: Vector2(153.7 * 2, 136),
+        srcSize: knightSize,
+      );
+
+    cheeseShockwave = Sprite(
+        knightSheet,
+        srcPosition: Vector2(153.7 * 3, 136 * 2),
+        srcSize: knightSize,
+      );
+
   }
 }
 

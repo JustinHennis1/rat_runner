@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
+import 'package:jumpnthrow/models/game_settings_model.dart';
 
 class Animations {
   // Boy animation storage
@@ -31,8 +32,9 @@ class Animations {
 
   // Preload everything
   static Future<void> load() async {
+    String character = GameSettingsModel.selectedCharacterSheet;
     // Load sheets once
-    final boySheet = await Flame.images.load('boy.png');
+    final boySheet = await Flame.images.load(character);
     final actionSheet = await Flame.images.load('boy_actions.png');
     final ratsheet = await Flame.images.load('rats.png');
     final knightSheet = await Flame.images.load('cheese_knight.png');

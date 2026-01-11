@@ -64,6 +64,9 @@ flutter:
   assets:
     - assets/images/stickmen.png
     - assets/images/rats.png
+    - assets/images/jmp_btn.png
+    - assets/images/shoot_btn.png
+    - assets/images/lunge_btn.png
     - assets/images/cheese_knight.png
     - assets/images/clockwork_rat.png
     - assets/images/projectiles.png
@@ -75,6 +78,12 @@ flutter:
     - assets/images/background_night.png
     - assets/images/background_sunset.png
     - assets/images/pgdesign.png
+    - assets/images/dripjacket.png
+    - assets/images/thugboy.png
+    - assets/characters/boy_.png
+    - assets/characters/thugboy_.png
+    - assets/characters/dripjacket_.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

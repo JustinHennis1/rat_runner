@@ -54,7 +54,6 @@ class StickmanRunner extends FlameGame
   // Track previous size for orientation changes
   Vector2? _previousSize;
   bool isLandscape = false;
-
   int currentBackgroundIndex = 0;
   double timeSinceLastTransition = 0.0;
   double timeBetweenTransitions = 30.0; // Switch every 30 seconds
@@ -117,8 +116,8 @@ class StickmanRunner extends FlameGame
       position: Vector2(size.x/2, 80),
       anchor: Anchor.center,
       textRenderer: TextPaint(
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: Colors.black,
           fontSize: 48,
           fontWeight: FontWeight.normal,
           fontFamily: 'Gamer'
@@ -142,7 +141,7 @@ class StickmanRunner extends FlameGame
 
     hud.add(playerHealthBar);
     hud.add(enemyHealthBar);
-    add(scoreBackdrop);
+    //add(scoreBackdrop);
     add(scoreText);
     await Animations.load();
 
@@ -448,6 +447,27 @@ class StickmanRunner extends FlameGame
     // Move to next background
     currentBackgroundIndex = (currentBackgroundIndex + 1) % backgrounds.length;
     
+    if(currentBackgroundIndex == 0){
+      scoreText.textRenderer = TextPaint(
+        style: TextStyle(
+          color: Colors.black,
+          fontSize: 48,
+          fontWeight: FontWeight.normal,
+          fontFamily: 'Gamer'
+        ),
+      );
+    } else if (currentBackgroundIndex == 2){
+      scoreText.textRenderer = TextPaint(
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 48,
+          fontWeight: FontWeight.normal,
+          fontFamily: 'Gamer'
+        ),
+      );
+    }
+    
+
     // Create new background from preloaded parallax
     parallaxBackground = ParallaxComponent(
       parallax: _preloadedParallax[backgrounds[currentBackgroundIndex]]!,
@@ -553,7 +573,11 @@ class MyGameWidget extends StatelessWidget {
       },
     );
 
-    final GameSettings settings = GameSettings();
+    final GameSettings settings = GameSettings(
+      buttonSize: GameSettingsModel.buttonSize, 
+      leftHanded: GameSettingsModel.leftHanded, 
+      selectedCharacterSheet: GameSettingsModel.selectedCharacterSheet
+    );
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -569,27 +593,47 @@ class MyGameWidget extends StatelessWidget {
                 height: GameSettingsModel.buttonSize,
                 width: GameSettingsModel.buttonSize,
                 child: FloatingActionButton(
+                  backgroundColor: Colors.transparent,
                   onPressed: () {
                     game.shoot();
                   },
                   heroTag: "attack",
-                  child: Icon(Icons.flash_on),
+                  child: Image.asset('assets/images/shoot_btn.png', width: 70, height: 70,),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 20,
+              left: GameSettingsModel.leftHanded ? null : 120,
+              right: GameSettingsModel.leftHanded ? 20 : null,
+              child: SizedBox(
+                height: GameSettingsModel.buttonSize,
+                width: GameSettingsModel.buttonSize,
+                child: FloatingActionButton(
+                  backgroundColor: Colors.transparent,
+                  onPressed: () {
+                    game.lunge();
+                  },
+                  heroTag: "lunge",
+                  child: Image.asset('assets/images/lunge_btn.png', width: 70, height: 70,),
                 ),
               ),
             ),
             Positioned(
               bottom: 20,
               left: GameSettingsModel.leftHanded ? null : 20,
-              right: GameSettingsModel.leftHanded ? 20 : null,
+              right: GameSettingsModel.leftHanded ? 120 : null,
               child: SizedBox(
                 height: GameSettingsModel.buttonSize,
                 width: GameSettingsModel.buttonSize,
                 child: FloatingActionButton(
+                  
+                  backgroundColor: Colors.transparent,
                   onPressed: () {
                     game.jump();
                   },
                   heroTag: "jump",
-                  child: Icon(Icons.arrow_upward, size: 30),
+                  child: Image.asset('assets/images/jmp_btn.png', width: 70, height: 70,),
                 ),
               ),
             ),

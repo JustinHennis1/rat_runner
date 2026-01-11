@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:jumpnthrow/models/game_settings_model.dart';
 
-class GameSettings extends StatefulWidget {
-  const GameSettings({super.key});
+class SettingsPage extends StatefulWidget {
+  final double buttonSize;
+  final bool leftHanded;
+  final String selectedCharacterSheet;
+  SettingsPage({super.key, required this.buttonSize, required this.leftHanded, required this.selectedCharacterSheet});
 
   @override
   _GameSettingsState createState() => _GameSettingsState();
 }
 
-class _GameSettingsState extends State<GameSettings> {
+class _GameSettingsState extends State<SettingsPage> {
   double buttonSize = GameSettingsModel.buttonSize;
   bool leftHanded = GameSettingsModel.leftHanded;
 
@@ -31,28 +34,11 @@ class _GameSettingsState extends State<GameSettings> {
           SafeArea(
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close, size: 32, color: Colors.red),
-                        onPressed: () {
-                          GameSettingsModel.buttonSize = buttonSize;
-                          GameSettingsModel.leftHanded = leftHanded;
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
                 Expanded(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -92,12 +78,76 @@ class _GameSettingsState extends State<GameSettings> {
                       ),
                     ),
                   ),
+                Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        style: ButtonStyle(
+                          backgroundColor:
+                              WidgetStatePropertyAll<Color>(Colors.white),
+                          padding: WidgetStatePropertyAll<EdgeInsets>(
+                            const EdgeInsets.symmetric(
+                                vertical: 15.0, horizontal: 22.5),
+                          ),
+                        ),
+                        onPressed: () async{
+                          GameSettingsModel.buttonSize = buttonSize;
+                          GameSettingsModel.leftHanded = leftHanded;
+
+                          await GameSettingsService.saveSettings(
+                            GameSettings(
+                              buttonSize: buttonSize,
+                              leftHanded: leftHanded,
+                              selectedCharacterSheet: widget.selectedCharacterSheet,
+                            ),
+                          );
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'Save',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2.0,
+                            color: Colors.grey[900],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class GameSettings {
+  final double buttonSize;
+  final bool leftHanded;
+  final String selectedCharacterSheet;
+
+  GameSettings({
+    required this.buttonSize,
+    required this.leftHanded,
+    required this.selectedCharacterSheet,
+  });
+
+  GameSettings copyWith({
+    double? buttonSize,
+    bool? leftHanded,
+    String? selectedCharacterSheet,
+  }) {
+    return GameSettings(
+      buttonSize: buttonSize ?? this.buttonSize,
+      leftHanded: leftHanded ?? this.leftHanded,
+      selectedCharacterSheet:
+          selectedCharacterSheet ?? this.selectedCharacterSheet,
     );
   }
 }

@@ -32,3 +32,18 @@ class Enemy extends SpriteAnimationComponent {
     return isAttacking;
   }
 }
+
+class Character {
+  final String id;
+  final String image;
+  final String spriteSheetLocation;
+  final bool unlocked;
+
+  Character({
+    required this.id,
+    required this.image,
+    required this.spriteSheetLocation,
+    required this.unlocked,
+  });
+}
+

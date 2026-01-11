@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:jumpnthrow/models/achievement_manager.dart';
+import 'package:jumpnthrow/models/game_settings_model.dart';
 import 'package:jumpnthrow/views/achievementsPage.dart';
 import 'package:jumpnthrow/views/game.dart';
 import 'package:jumpnthrow/views/menu.dart';
+import 'package:jumpnthrow/views/playerCustomizationPage.dart';
 import 'package:jumpnthrow/views/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +24,7 @@ class _MainMenuState extends State<MainMenu> {
   void initState() {
     super.initState();
     _loadStats();
+    _loadSettings();
   }
 
   Future<void> _loadStats() async {
@@ -32,6 +35,15 @@ class _MainMenuState extends State<MainMenu> {
       highScore = prefs.getInt('highScore') ?? 0;
       unlockedAchievements = unlocked;
       achievementProgress = progress;
+    });
+  }
+
+  Future<void> _loadSettings() async {
+    final settings = await GameSettingsService.load();
+    setState(() {
+      GameSettingsModel.buttonSize = settings.buttonSize;
+      GameSettingsModel.leftHanded = settings.leftHanded;
+      GameSettingsModel.selectedCharacterSheet = settings.selectedCharacterSheet;
     });
   }
 
@@ -48,6 +60,28 @@ class _MainMenuState extends State<MainMenu> {
               image: DecorationImage(
                 image: AssetImage('assets/images/background_night.png'),
                 fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Positioned(
+            top: 64, // adjust to sit under high score
+            left: 12,
+            child: FloatingActionButton(
+              onPressed: () { Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => PlayerCustomizationPage())); },
+              backgroundColor: Colors.grey[900],
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  bottomRight: Radius.circular(24),
+                  topLeft: Radius.circular(24),
+                ),
+              ),
+              elevation: 0,
+              highlightElevation: 0,
+              child: const Icon(
+                Icons.person,
+                size: 32,
+                color: Colors.white,
               ),
             ),
           ),
@@ -71,6 +105,7 @@ class _MainMenuState extends State<MainMenu> {
                           color: Color.fromARGB(255, 255, 255, 255),
                         ),
                       ),
+                    
                     ],
                   ),
                 ),
@@ -250,7 +285,11 @@ class _MainMenuState extends State<MainMenu> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => GameSettings(),
+                              builder: (context) => SettingsPage(
+                                buttonSize: GameSettingsModel.buttonSize, 
+                                leftHanded: GameSettingsModel.leftHanded, 
+                                selectedCharacterSheet: GameSettingsModel.selectedCharacterSheet
+                                ),
                             ),
                           );
                         },

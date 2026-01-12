@@ -1,3 +1,5 @@
+import 'package:jumpnthrow/models/achievement_reward.dart';
+
 enum AchievementCategory { earlyGame, milestone, skill }
 
 class Achievement {
@@ -6,6 +8,7 @@ class Achievement {
   final String description;
   final AchievementCategory category;
   final int goal; // numeric target (distance, runs, kills, etc.)
+  final AchievementReward? reward;
 
   const Achievement({
     required this.id,
@@ -13,6 +16,7 @@ class Achievement {
     required this.description,
     required this.category,
     required this.goal,
+    this.reward
   });
 }
 
@@ -34,6 +38,7 @@ class Achievements {
       description: 'Defeat your first enemy.',
       category: AchievementCategory.earlyGame,
       goal: 1,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '2')
     ),
     Achievement(
       id: 'first_death',
@@ -234,4 +239,8 @@ class Achievements {
       goal: 150,
     ),
   ];
+
+  static Achievement getById(String id) {
+    return all.firstWhere((achievement) => achievement.id == id);
+  }
 }

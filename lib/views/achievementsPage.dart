@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpnthrow/models/achievement_reward.dart';
 import 'package:jumpnthrow/models/achievements.dart';
 
 class AchievementsPage extends StatelessWidget {
@@ -178,8 +179,18 @@ class _AchievementTileState extends State<AchievementTile>
                     ],
                   ),
                 ),
+
+                // 🎁 REWARD PREVIEW (if any)
+                if (widget.achievement.reward != null) ...[
+                  const SizedBox(width: 12),
+                  AchievementRewardPreview(
+                    reward: widget.achievement.reward!,
+                    unlocked: widget.unlocked,
+                  ),
+                ],
               ],
             ),
+
           ),
         ),
       ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jumpnthrow/models/achievement_manager.dart';
+import 'package:jumpnthrow/models/character_manager.dart';
 import 'package:jumpnthrow/models/game_settings_model.dart';
+import 'package:jumpnthrow/tools/debug.dart';
 import 'package:jumpnthrow/views/achievementsPage.dart';
 import 'package:jumpnthrow/views/game.dart';
 import 'package:jumpnthrow/views/menu.dart';
@@ -23,6 +25,7 @@ class _MainMenuState extends State<MainMenu> {
   @override
   void initState() {
     super.initState();
+    //DebugTools.resetAllPreferences(); // Uncomment to reset preferences for testing
     _loadStats();
     _loadSettings();
   }
@@ -31,6 +34,7 @@ class _MainMenuState extends State<MainMenu> {
     final prefs = await SharedPreferences.getInstance();
     final unlocked = await AchievementManager.loadUnlockedAchievements();
     final progress = await AchievementManager.loadProgress();
+    await CharacterManager().loadUnlockedCharacters();
     setState(() {
       highScore = prefs.getInt('highScore') ?? 0;
       unlockedAchievements = unlocked;

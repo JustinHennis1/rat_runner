@@ -1,9 +1,12 @@
+import 'package:jumpnthrow/models/achievement_reward.dart';
+import 'package:jumpnthrow/models/character_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jumpnthrow/models/achievements.dart';
 
 class AchievementManager {
   static const String _progressPrefix = 'achievement_progress_';
   static const String _unlockedKey = 'unlocked_achievements';
+  final CharacterManager characterManager = CharacterManager();
 
   /// ----------------------------
   /// LOADERS
@@ -86,9 +89,40 @@ class AchievementManager {
 
     if (!unlocked.contains(id)) {
       unlocked.add(id);
+      Achievement ach = Achievements.getById(id);
+      onAchievementUnlocked(ach);
       await prefs.setStringList(_unlockedKey, unlocked);
     }
   }
+
+  static void onAchievementUnlocked(Achievement achievement) {
+    
+  final reward = achievement.reward;
+  if (reward == null) return;
+
+  switch (reward.type) {
+    case AchievementRewardType.unlockCharacter:
+      CharacterManager().unlockCharacter(reward.id);
+      break;
+
+    case AchievementRewardType.unlockAnimation:
+      // AnimationManager.unlock(reward.id);
+      break;
+
+    case AchievementRewardType.unlockSkin:
+      // SkinManager.unlock(reward.id);
+      break;
+
+    case AchievementRewardType.unlockProjectile:
+      // ProjectileManager.unlock(reward.id);
+      break;
+
+    case AchievementRewardType.currency:
+      // CurrencyManager.add(reward.amount);
+      break;
+  }
+}
+
 
   /// ----------------------------
   /// HELPERS

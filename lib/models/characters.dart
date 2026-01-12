@@ -39,11 +39,31 @@ class Character {
   final String spriteSheetLocation;
   final bool unlocked;
 
-  Character({
+  const Character({
     required this.id,
     required this.image,
     required this.spriteSheetLocation,
     required this.unlocked,
   });
+}
+
+class GameCharacters {
+  static const List<Character> all = [
+    Character(
+      id: '1',
+      image: 'assets/characters/boy_.png',
+      spriteSheetLocation: 'boy.png',
+      unlocked: true),
+    Character(
+      id: '2', 
+      image: 'assets/characters/thugboy_.png', 
+      spriteSheetLocation: 'thugboy.png',
+      unlocked: false),
+    Character(
+      id: '3', 
+      image: 'assets/characters/dripjacket_.png', 
+      spriteSheetLocation: 'dripjacket.png',
+      unlocked: false),
+  ];
 }
 

@@ -39,7 +39,6 @@ class StickmanRunner extends FlameGame
   int rat_x = 100; //210
 
   // UI
-  late SpriteComponent scoreBackdrop;
   late TextComponent scoreText;
   late HealthBar playerHealthBar;
   late HealthBar enemyHealthBar;
@@ -104,13 +103,6 @@ class StickmanRunner extends FlameGame
     gradientOverlay = RadialGradientOverlay();
     add(gradientOverlay);
 
-    scoreBackdrop = SpriteComponent(
-      sprite: await loadSprite('pgdesign.png'),
-      anchor: Anchor.center,
-      position: Vector2(size.x/2, 50),
-      size: Vector2(size.x, 120), // backdrop height
-    );
-
     scoreText = TextComponent(
       text: '0',
       position: Vector2(size.x/2, 80),
@@ -128,20 +120,19 @@ class StickmanRunner extends FlameGame
     playerHealthBar = HealthBar(
       maxHealth: 100,
       currentHealth: state.health.toDouble(),
-      size: Vector2(100, 18),
+      size: Vector2(100, 9),
       position: Vector2(20, size.y - 140),
     );
 
     enemyHealthBar = HealthBar(
       maxHealth: 100,
       currentHealth: state.ratHealth.toDouble(),
-      size: Vector2(100, 18),
+      size: Vector2(100, 9),
       position: Vector2(size.x - 20, size.y - 140),
     );
 
     hud.add(playerHealthBar);
     hud.add(enemyHealthBar);
-    //add(scoreBackdrop);
     add(scoreText);
     await Animations.load();
 
@@ -217,13 +208,11 @@ class StickmanRunner extends FlameGame
     }
 
     // Update UI elements
-    scoreBackdrop.position = Vector2(newSize.x/2, 50);
-    scoreBackdrop.size = Vector2(newSize.x, 120);
     scoreText.position = Vector2(newSize.x/2, 80);
     
     // Position health text relative to screen bottom
-    playerHealthBar.position = Vector2(boy_x.toDouble(), newSize.y - 150);
-    enemyHealthBar.position = Vector2(newSize.x - rat_x - 20, newSize.y - 150);
+    playerHealthBar.position = Vector2(boy_x.toDouble(), newSize.y - boy_y.toDouble() + 20);
+    enemyHealthBar.position = Vector2(newSize.x - rat_x - 20, newSize.y - rat_y.toDouble() + 20);
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'package:jumpnthrow/models/projectile.dart';
+import 'package:ratrunner/models/projectile.dart';
 
 class CollisionHelper {
   static bool projectileHitsEnemy(

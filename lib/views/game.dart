@@ -3,17 +3,17 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/parallax.dart';
 import 'package:flutter/material.dart';
-
-import 'package:jumpnthrow/models/achievement_manager.dart';
-import 'package:jumpnthrow/models/animations.dart';
-import 'package:jumpnthrow/models/characters.dart';
-import 'package:jumpnthrow/models/collision.dart';
-import 'package:jumpnthrow/models/enemy_controller.dart';
-import 'package:jumpnthrow/models/game_settings_model.dart';
-import 'package:jumpnthrow/models/game_state.dart';
-import 'package:jumpnthrow/models/health_bar.dart';
-import 'package:jumpnthrow/models/player_controller.dart';
-import 'package:jumpnthrow/views/settings.dart';
+import 'package:flame_audio/flame_audio.dart';
+import 'package:ratrunner/models/achievement_manager.dart';
+import 'package:ratrunner/models/animations.dart';
+import 'package:ratrunner/models/characters.dart';
+import 'package:ratrunner/models/collision.dart';
+import 'package:ratrunner/models/enemy_controller.dart';
+import 'package:ratrunner/models/game_settings_model.dart';
+import 'package:ratrunner/models/game_state.dart';
+import 'package:ratrunner/models/health_bar.dart';
+import 'package:ratrunner/models/player_controller.dart';
+import 'package:ratrunner/views/settings.dart';
 
 class StickmanRunner extends FlameGame
     with HasCollisionDetection, TapCallbacks {
@@ -63,10 +63,10 @@ class StickmanRunner extends FlameGame
   double transitionDuration = 1.5; // 1.5 second fade
 
   final backgrounds = [
-    'background_day.png',
-    'background_dawn.png',
     'background_night.png',
     'background_sunset.png',
+    'background_day.png',
+    'background_dawn.png',
   ];
   
   // Preloaded parallax objects for instant switching
@@ -109,7 +109,7 @@ class StickmanRunner extends FlameGame
       anchor: Anchor.center,
       textRenderer: TextPaint(
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
           fontSize: 48,
           fontWeight: FontWeight.normal,
           fontFamily: 'Gamer'
@@ -152,6 +152,8 @@ class StickmanRunner extends FlameGame
     add(rat);
 
     _previousSize = size.clone();
+
+    await initAudio();
   }
 
   @override
@@ -166,11 +168,22 @@ class StickmanRunner extends FlameGame
     _previousSize = newSize.clone();
   }
 
+  
+
+  Future<void> initAudio() async {
+    if (GameSettingsModel.musicOff) return;
+    await FlameAudio.audioCache.load('ratrun_audio.m4a');
+
+    // Looping background music
+    FlameAudio.bgm.play('ratrun_audio.m4a', volume: 0.7);
+  }
+
+
   void _handleOrientationChange(Vector2 newSize) {
 
     if(isLandscape){
         boy_y = 80;
-        boy_x = 120;
+        boy_x = 210;
         rat_y = 80;
         rat_x = 210;
     } else {
@@ -296,7 +309,7 @@ class StickmanRunner extends FlameGame
         rat.setAttacking(false);
       };
 
-      setAttacked(state.level);
+      setAttacked(rat.enemyLevel);
 
       state.enemyShootTimer = 0;
       state.enemyShootInterval =
@@ -436,19 +449,19 @@ class StickmanRunner extends FlameGame
     // Move to next background
     currentBackgroundIndex = (currentBackgroundIndex + 1) % backgrounds.length;
     
-    if(currentBackgroundIndex == 0){
+    if(currentBackgroundIndex == 3){
       scoreText.textRenderer = TextPaint(
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
           fontSize: 48,
           fontWeight: FontWeight.normal,
           fontFamily: 'Gamer'
         ),
       );
-    } else if (currentBackgroundIndex == 2){
+    } else if (currentBackgroundIndex == 1){
       scoreText.textRenderer = TextPaint(
         style: TextStyle(
-          color: Colors.white,
+          color: Colors.black,
           fontSize: 48,
           fontWeight: FontWeight.normal,
           fontFamily: 'Gamer'
@@ -510,8 +523,8 @@ class StickmanRunner extends FlameGame
     if (state.isShooting) return;
 
     AchievementManager.incrementProgress('first_shot', 1);
-
-    final projectile = PlayerController.shoot(boy.position);
+    String character = GameSettingsModel.selectedCharacterSheet;
+    final projectile = PlayerController.shoot(boy.position, character);
     state.isShooting = true;
     PlayerController.setAttack(boy);
 
@@ -527,14 +540,23 @@ class StickmanRunner extends FlameGame
     if (rat.isMounted) return;
 
     state.level += 1;
-    state.ratHealth = 100;
-    enemyHealthBar.setHealth(100);
+    final newMaxHp = 100 + (state.level * 50);
+    state.ratHealth = newMaxHp.toDouble();
+
+    enemyHealthBar.setMaxHealth(newMaxHp.toDouble());
+    enemyHealthBar.setHealth(state.ratHealth.toDouble());
+
+    final nextLevel = EnemyController.pickRandomEnemyLevel(
+      state.level,
+      avoidRepeats: true,
+      lastLevel: state.lastEnemyLevel,
+    );
 
     rat = EnemyController.spawnEnemy(
       size,
       rat_x,
       rat_y,
-      state.level,
+      nextLevel,
     );
 
     add(rat);
@@ -546,6 +568,8 @@ class StickmanRunner extends FlameGame
       rat.position.y += 30;
       rat.flipHorizontally();
     }
+    
+    state.lastEnemyLevel = nextLevel;
   }
 }
 
@@ -565,7 +589,9 @@ class MyGameWidget extends StatelessWidget {
     final GameSettings settings = GameSettings(
       buttonSize: GameSettingsModel.buttonSize, 
       leftHanded: GameSettingsModel.leftHanded, 
-      selectedCharacterSheet: GameSettingsModel.selectedCharacterSheet
+      musicOff: GameSettingsModel.musicOff,
+      selectedCharacterSheet: GameSettingsModel.selectedCharacterSheet, 
+      selectedActionSheet: GameSettingsModel.selectedActionSheet
     );
 
     return MaterialApp(

@@ -1,4 +1,4 @@
-import 'package:jumpnthrow/models/achievement_reward.dart';
+import 'package:ratrunner/models/achievement_reward.dart';
 
 enum AchievementCategory { earlyGame, milestone, skill }
 
@@ -67,6 +67,7 @@ class Achievements {
       description: 'Heal for the first time.',
       category: AchievementCategory.earlyGame,
       goal: 1,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '6')
     ),
 
     // ======================
@@ -92,6 +93,7 @@ class Achievements {
       description: 'Travel 10,000 meters.',
       category: AchievementCategory.milestone,
       goal: 10000,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '3')
     ),
     Achievement(
       id: 'distance_50000',
@@ -113,6 +115,7 @@ class Achievements {
       description: 'Travel 200,000 meters.',
       category: AchievementCategory.milestone,
       goal: 200000,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '7')
     ),
 
     // ======================
@@ -152,6 +155,7 @@ class Achievements {
       description: 'Complete 200 runs.',
       category: AchievementCategory.milestone,
       goal: 200,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '4')
     ),
 
     // ======================
@@ -184,6 +188,7 @@ class Achievements {
       description: 'Travel 50,000 meters without taking damage.',
       category: AchievementCategory.skill,
       goal: 50000,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '5')
     ),
     Achievement(
       id: 'no_damage_100000',
@@ -191,6 +196,7 @@ class Achievements {
       description: 'Travel 100,000 meters without taking damage.',
       category: AchievementCategory.skill,
       goal: 100000,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '9')
     ),
     Achievement(
       id: 'no_damage_200000',
@@ -198,6 +204,7 @@ class Achievements {
       description: 'Travel 200,000 meters without taking damage.',
       category: AchievementCategory.skill,
       goal: 200000,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '10')
     ),
 
     // ======================
@@ -216,6 +223,7 @@ class Achievements {
       description: 'Defeat 25 bosses.',
       category: AchievementCategory.skill,
       goal: 25,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '3')
     ),
     Achievement(
       id: 'boss_kills_75',
@@ -237,6 +245,7 @@ class Achievements {
       description: 'Defeat 150 bosses.',
       category: AchievementCategory.skill,
       goal: 150,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '8')
     ),
   ];
 

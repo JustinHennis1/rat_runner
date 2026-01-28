@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:jumpnthrow/models/characters.dart';
-import 'package:jumpnthrow/models/character_tile.dart';
-import 'package:jumpnthrow/models/character_manager.dart';
-import 'package:jumpnthrow/models/game_settings_model.dart';
-import 'package:jumpnthrow/views/settings.dart';
+import 'package:ratrunner/models/characters.dart';
+import 'package:ratrunner/models/character_tile.dart';
+import 'package:ratrunner/models/character_manager.dart';
+import 'package:ratrunner/models/game_settings_model.dart';
+import 'package:ratrunner/views/settings.dart';
 
 class PlayerCustomizationPage extends StatefulWidget {
   const PlayerCustomizationPage({super.key});
@@ -71,16 +71,6 @@ class _PlayerCustomizationPageState extends State<PlayerCustomizationPage> {
               SafeArea(
                 child: Column(
                   children: [
-                    const SizedBox(height: 70),
-
-                    // DEBUG UNLOCK BUTTON
-                    ElevatedButton(
-                      onPressed: () {
-                        CharacterManager().unlockCharacter('2');
-                      },
-                      child: const Text('Unlock Character 2'),
-                    ),
-
                     // 🧍 MAIN CHARACTER DISPLAY
                     Expanded(
                       flex: 3,
@@ -92,7 +82,7 @@ class _PlayerCustomizationPageState extends State<PlayerCustomizationPage> {
                               : Image.asset(
                                   selectedCharacter!.image,
                                   key: ValueKey(selectedCharacter!.id),
-                                  height: 260,
+                                  height: 250,
                                 ),
                         ),
                       ),
@@ -133,6 +123,8 @@ class _PlayerCustomizationPageState extends State<PlayerCustomizationPage> {
                                   GameSettingsModel
                                           .selectedCharacterSheet =
                                       character.spriteSheetLocation;
+                                  GameSettingsModel.selectedActionSheet =
+                                      character.actionSheetLocation;
                                 });
 
                                 GameSettingsService.saveCharacter(
@@ -141,8 +133,11 @@ class _PlayerCustomizationPageState extends State<PlayerCustomizationPage> {
                                         GameSettingsModel.buttonSize,
                                     leftHanded:
                                         GameSettingsModel.leftHanded,
+                                    musicOff: GameSettingsModel.musicOff,
                                     selectedCharacterSheet:
                                         character.spriteSheetLocation,
+                                    selectedActionSheet:
+                                        character.actionSheetLocation,
                                   ),
                                 );
                               },

@@ -1,106 +1,74 @@
+import 'dart:math';
 import 'package:flame/components.dart';
-import 'package:jumpnthrow/models/animations.dart';
-import 'package:jumpnthrow/models/characters.dart';
-import 'package:jumpnthrow/models/projectile.dart';
+import 'package:ratrunner/models/animations.dart';
+import 'package:ratrunner/models/characters.dart';
+import 'package:ratrunner/models/projectile.dart';
 
 class EnemyController {
+  static final Random _rng = Random();
+
+  // Choose the next enemy "type" (level) randomly.
+  // Example: if playerLevel==4, can spawn 1..4.
+  static int pickRandomEnemyLevel(int playerLevel, {bool avoidRepeats = true, int? lastLevel}) {
+    final maxType = playerLevel.clamp(1, 5);
+    final choices = List<int>.generate(maxType, (i) => i + 1);
+
+    if (avoidRepeats && lastLevel != null && choices.length > 1) {
+      choices.remove(lastLevel);
+    }
+
+    return choices[_rng.nextInt(choices.length)];
+  }
+
   static Enemy spawnEnemy(
     Vector2 size,
     int ratX,
     int ratY,
-    int level,
+    int chosenLevel,
   ) {
-    SpriteAnimation animation = Animations.blueFireRat;
-
-    // Enemy not set to attack yet
-    switch (level) {
-      case 2:
-        animation = Animations.redFireRat;
-        break;
-      case 3:
-        animation = Animations.purplePoisonRat;
-        break;
-      case 4:
-        animation = Animations.cheeseKnightRat;
-        break;
-      case 5:
-        animation = Animations.clockworkRat;
-        break;
-    }
+    final animation = resetEnemyAnimation(chosenLevel);
 
     final rat = Enemy(
       animation: animation,
       position: Vector2(size.x - ratX.toDouble(), size.y - ratY),
-      enemyLevel: level,
+      enemyLevel: chosenLevel,
     );
+
     rat.flipHorizontallyAroundCenter();
     return rat;
   }
 
   static SpriteAnimation getAttackAnimation(int level) {
-    SpriteAnimation attackAnimation = Animations.blueFireRatAttacking;
-
     switch (level) {
-      case 2:
-        attackAnimation = Animations.redFireRatAttacking;
-        break;
-      case 3:
-        attackAnimation = Animations.purplePoisonRatAttacking;
-        break;
-      case 4:
-        attackAnimation = Animations.cheeseKnightRatAttacking;
-        break;
-      case 5:
-        attackAnimation = Animations.clockworkRatAttacking;
-        break;
+      case 2: return Animations.redFireRatAttacking;
+      case 3: return Animations.purplePoisonRatAttacking;
+      case 4: return Animations.cheeseKnightRatAttacking;
+      case 5: return Animations.clockworkRatAttacking;
+      case 1:
+      default: return Animations.blueFireRatAttacking;
     }
-    return attackAnimation;
   }
 
   static SpriteAnimation resetEnemyAnimation(int level) {
-    SpriteAnimation resetAnimation = Animations.blueFireRat;
-
     switch (level) {
-      case 2:
-        resetAnimation = Animations.redFireRat;
-        break;
-      case 3:
-        resetAnimation = Animations.purplePoisonRat;
-        break;
-      case 4:
-        resetAnimation = Animations.cheeseKnightRat;
-        break;
-      case 5:
-        resetAnimation = Animations.clockworkRat;
-        break;
+      case 2: return Animations.redFireRat;
+      case 3: return Animations.purplePoisonRat;
+      case 4: return Animations.cheeseKnightRat;
+      case 5: return Animations.clockworkRat;
+      case 1:
+      default: return Animations.blueFireRat;
     }
-    return resetAnimation;
   }
 
   static Sprite getProjectileSprite(int level) {
-    Sprite projectileSprite;
-
     switch (level) {
+      case 2: return Animations.redFireball;
+      case 3: return Animations.poisonball;
+      case 4: return Animations.swordSlash;
+      case 5: return Animations.clockworkGear;
       case 1:
-        projectileSprite = Animations.blueFireball; //firing animation
-        break;
-      case 2:
-        projectileSprite = Animations.redFireball;
-        break;
-      case 3:
-        projectileSprite = Animations.poisonball;
-        break;
-      case 4:
-        projectileSprite = Animations.swordSlash;
-        break;
-      case 5:
-        projectileSprite = Animations.clockworkGear;
-        break;
-      default:
-        projectileSprite = Animations.blueFireball;
+      default: return Animations.blueFireball;
     }
-    return projectileSprite;
-    
   }
 
   static EnemyProjectile createProjectile(
@@ -113,7 +81,6 @@ class EnemyController {
       position: position,
       speed: speed,
     );
-
     projectile.flipHorizontallyAroundCenter();
     return projectile;
   }

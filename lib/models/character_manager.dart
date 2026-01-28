@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jumpnthrow/models/characters.dart';
+import 'package:ratrunner/models/characters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CharacterManager extends ChangeNotifier {
@@ -31,6 +31,7 @@ class CharacterManager extends ChangeNotifier {
           id: c.id,
           image: c.image,
           spriteSheetLocation: c.spriteSheetLocation,
+          actionSheetLocation: c.actionSheetLocation,
           unlocked: true,
         );
         changed = true;
@@ -54,6 +55,7 @@ class CharacterManager extends ChangeNotifier {
       id: c.id,
       image: c.image,
       spriteSheetLocation: c.spriteSheetLocation,
+      actionSheetLocation: c.actionSheetLocation,
       unlocked: true,
     );
 

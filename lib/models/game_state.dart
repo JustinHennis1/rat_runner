@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:jumpnthrow/models/projectile.dart';
+import 'package:ratrunner/models/projectile.dart';
 
 class GameState {
   // Player
@@ -20,6 +20,7 @@ class GameState {
   double distance = 0;
   double noDamageDistance = 0;
   int level = 1;
+  int? lastEnemyLevel = 1;
 
   // Enemy shooting
   double enemyShootTimer = 0;

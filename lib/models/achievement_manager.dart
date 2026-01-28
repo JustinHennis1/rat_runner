@@ -1,7 +1,7 @@
-import 'package:jumpnthrow/models/achievement_reward.dart';
-import 'package:jumpnthrow/models/character_manager.dart';
+import 'package:ratrunner/models/achievement_reward.dart';
+import 'package:ratrunner/models/character_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:jumpnthrow/models/achievements.dart';
+import 'package:ratrunner/models/achievements.dart';
 
 class AchievementManager {
   static const String _progressPrefix = 'achievement_progress_';

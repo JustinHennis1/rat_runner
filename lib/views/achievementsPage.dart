@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jumpnthrow/models/achievement_reward.dart';
-import 'package:jumpnthrow/models/achievements.dart';
+import 'package:ratrunner/models/achievement_reward.dart';
+import 'package:ratrunner/models/achievements.dart';
 
 class AchievementsPage extends StatelessWidget {
   final Set<String> unlockedAchievements;

@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 class Projectile extends CircleComponent {
   final double speed = 400.0;
 
-  Projectile({required Vector2 position})
+  Projectile({required Vector2 position, required Color color})
     : super(
         position: position,
         radius: 8,
-        paint: Paint()..color = Colors.yellow,
+        paint: Paint()..color = color,
       );
 
   @override

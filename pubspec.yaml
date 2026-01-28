@@ -1,5 +1,5 @@
-name: jumpnthrow
-description: "A new Flutter project."
+name: ratrunner
+description: "Mobile game where you play as various characters running and fighting bosses."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -35,7 +35,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flame: ^1.32.0
-  flame_audio: ^2.11.10
+  flame_audio: ^2.11.12
   shared_preferences: ^2.5.3
 
 dev_dependencies:
@@ -62,6 +62,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - assets/audio/
     - assets/images/stickmen.png
     - assets/images/rats.png
     - assets/images/jmp_btn.png
@@ -82,7 +83,31 @@ flutter:
     - assets/images/thugboy.png
     - assets/characters/boy_.png
     - assets/characters/thugboy_.png
+    - assets/images/thugboy_actions.png
     - assets/characters/dripjacket_.png
+    - assets/images/dripjacket_actions.png
+    - assets/images/scientist.png
+    - assets/images/scientist_actions.png
+    - assets/characters/scientist_.png
+    - assets/characters/exterminator_.png
+    - assets/images/exterminator_actions.png
+    - assets/images/exterminator.png
+    - assets/images/chef.png
+    - assets/images/chef_actions.png
+    - assets/characters/chef_.png
+    - assets/images/samurai.png
+    - assets/images/samurai_actions.png
+    - assets/characters/samurai_.png
+    - assets/images/toxic.png
+    - assets/images/toxic_actions.png
+    - assets/characters/toxic_.png
+    - assets/images/ronin.png
+    - assets/images/ronin_actions.png
+    - assets/characters/ronin_.png
+    - assets/images/assassin.png
+    - assets/images/assassin_actions.png
+    - assets/characters/assassin_.png
+
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

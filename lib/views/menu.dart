@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:jumpnthrow/views/game.dart';
+import 'package:ratrunner/views/game.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flame_audio/flame_audio.dart';
 
 class ContinueMenu extends StatefulWidget {
   final int? lastscore;
@@ -45,6 +46,11 @@ class _ContinueMenuState extends State<ContinueMenu>
     );
 
     _loadHighScore();
+    stopAudio();
+  }
+
+  Future<void> stopAudio() async {
+    await FlameAudio.bgm.stop();
   }
 
   Future<void> _loadHighScore() async {

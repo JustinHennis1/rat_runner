@@ -19,6 +19,22 @@ class CollisionHelper {
     return projectileRect.overlaps(targetRect);
   }
 
+    static bool playerHitsPowerUp(
+    SpriteAnimationComponent player,
+    SpriteAnimationComponent target,
+  ) {
+    final playerRect = player.toRect();
+
+    final targetRect = Rect.fromLTWH(
+      target.position.x + target.size.x * 0.2,
+      target.position.y - 70,
+      target.size.x * 0.6,
+      target.size.y * 0.6,
+    );
+
+    return playerRect.overlaps(targetRect);
+  }
+
   static bool enemyHitsPlayer(
     EnemyProjectile projectile,
     SpriteAnimationComponent target,

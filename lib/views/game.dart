@@ -13,7 +13,10 @@ import 'package:ratrunner/models/game_settings_model.dart';
 import 'package:ratrunner/models/game_state.dart';
 import 'package:ratrunner/models/health_bar.dart';
 import 'package:ratrunner/models/player_controller.dart';
+import 'package:ratrunner/models/powerups.dart';
 import 'package:ratrunner/views/settings.dart';
+import 'package:ratrunner/models/attack_pattern.dart';
+import 'package:ratrunner/models/attack_patterns.dart';
 
 class StickmanRunner extends FlameGame
     with HasCollisionDetection, TapCallbacks {
@@ -56,6 +59,10 @@ class StickmanRunner extends FlameGame
   int currentBackgroundIndex = 0;
   double timeSinceLastTransition = 0.0;
   double timeBetweenTransitions = 30.0; // Switch every 30 seconds
+
+  // Attack Patterns
+  late AttackPatternRunner _attackRunner;
+  int _activePatternStage = -1;
   
   // Transition state
   bool isTransitioning = false;
@@ -150,6 +157,10 @@ class StickmanRunner extends FlameGame
 
     add(boy);
     add(rat);
+
+    _attackRunner = AttackPatternRunner(AttackPatterns.forStage(state.level), rng: state.random);
+    _activePatternStage = state.level;
+
 
     _previousSize = size.clone();
 
@@ -290,31 +301,41 @@ class StickmanRunner extends FlameGame
       _updateTransition(dt);
     }
 
-    // Enemy shooting
-    state.enemyShootTimer += dt;
+    // Enemy shooting (pattern-driven)
+    if (rat.isMounted) {
+      // If stage changed (you increment state.level in spawn()), update pattern.
+      if (state.level != _activePatternStage) {
+        _attackRunner = AttackPatternRunner(AttackPatterns.forStage(state.level), rng: state.random);
+        _activePatternStage = state.level;
+      }
 
-    if (state.enemyShootTimer >= state.enemyShootInterval &&
-        !rat.getAttacking()) {
+      // Don't shoot while in the middle of your attack animation lockout
+      if (!rat.getAttacking()) {
+        final shotsToFire = _attackRunner.tick(dt);
 
-      rat.setAttacking(true);
+        if (shotsToFire > 0) {
+          // Start attack animation once, and fire N shots this frame
+          rat.setAttacking(true);
+          final idleAnimation = rat.animation;
+          rat.animation = EnemyController.getAttackAnimation(rat.enemyLevel);
 
-      final idleAnimation = rat.animation;
+          rat.animationTicker?.onComplete = () {
+            rat.animation = idleAnimation;
+            rat.setAttacking(false);
+          };
 
-      rat.animation =
-          EnemyController.getAttackAnimation(rat.enemyLevel);
-
-      // onComplete MUST be set on the ticker
-      rat.animationTicker?.onComplete = () {
-        rat.animation = idleAnimation;
-        rat.setAttacking(false);
-      };
-
-      setAttacked(rat.enemyLevel);
-
-      state.enemyShootTimer = 0;
-      state.enemyShootInterval =
-          1.5 + state.random.nextDouble() * 1.5;
+          // Fire all shots (burst shots will often come across frames,
+          // but if dt is large, you may get 2+ in same tick)
+          for (int i = 0; i < shotsToFire; i++) {
+            setAttacked(rat.enemyLevel);
+          }
+        }
+      } else {
+        // If attacking, still tick runner so time doesn't "pause" unrealistically.
+        _attackRunner.tick(dt);
+      }
     }
+
 
     // Jump physics
     if (state.isJumping || boy.position.y < size.y - boy_y) {
@@ -355,6 +376,18 @@ class StickmanRunner extends FlameGame
       return false;
     });
 
+    // Health Power Up -> Player
+    for (final powerUp in List.from(state.healthPowerUps)) {
+      if (powerUp.isMounted &&
+          CollisionHelper.playerHitsPowerUp(boy, powerUp)) {
+        powerUp.removeFromParent();
+        state.healthPowerUps.remove(powerUp);
+        state.health += 50;
+        playerHealthBar.setHealth(state.health.toDouble());
+        AchievementManager.incrementProgress('first_heal', 1);
+      }
+    }
+
     // Player projectiles → enemy
     for (final projectile in List.from(state.projectiles)) {
       if (rat.isMounted &&
@@ -364,6 +397,7 @@ class StickmanRunner extends FlameGame
         state.projectiles.remove(projectile);
         state.ratHealth -= 20;
         enemyHealthBar.setHealth(state.ratHealth.toDouble());
+        rat.onHit();
       }
     }
 
@@ -402,6 +436,11 @@ class StickmanRunner extends FlameGame
       AchievementManager.incrementProgress('boss_kills_150', 1);
       if (rat.isMounted) {
         remove(rat);
+      }
+      // Critical hit - drop health power-up
+      int num = state.random.nextInt(100);
+      if (num < 25) {
+        drophealthPowerUp(Vector2(boy.position.x + 160, boy.position.y - 50));
       }
       spawn();
       // Add bonus distance instead of multiplying
@@ -499,6 +538,23 @@ class StickmanRunner extends FlameGame
     state.enemyProjectiles.add(projectile);
   }
 
+  void drophealthPowerUp(Vector2 position) {
+    final powerUp = HealthPowerUp(
+      position: position,
+      animation: Animations.spinningHeart,
+    );
+    add(powerUp);
+    state.healthPowerUps.add(powerUp);
+  }
+
+  void heal() {
+    state.health += 50;
+    if (state.health > 100) {
+      state.health = 100;
+    }
+    playerHealthBar.setHealth(state.health.toDouble());
+  }
+
   void jump() {
     if (!state.isJumping && boy.position.y >= size.y - 250) {
       AchievementManager.incrementProgress('first_jump', 1);
@@ -542,6 +598,9 @@ class StickmanRunner extends FlameGame
     state.level += 1;
     final newMaxHp = 100 + (state.level * 50);
     state.ratHealth = newMaxHp.toDouble();
+
+    _attackRunner = AttackPatternRunner(AttackPatterns.forStage(state.level), rng: state.random);
+    _activePatternStage = state.level;
 
     enemyHealthBar.setMaxHealth(newMaxHp.toDouble());
     enemyHealthBar.setHealth(state.ratHealth.toDouble());

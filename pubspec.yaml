@@ -107,8 +107,7 @@ flutter:
     - assets/images/assassin.png
     - assets/images/assassin_actions.png
     - assets/characters/assassin_.png
-
-
+    - assets/images/heart.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

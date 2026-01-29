@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:ratrunner/models/powerups.dart';
 import 'package:ratrunner/models/projectile.dart';
 
 class GameState {
@@ -30,4 +31,7 @@ class GameState {
   // Projectiles
   final List<Projectile> projectiles = [];
   final List<EnemyProjectile> enemyProjectiles = [];
+
+  // Power-ups
+  final List<HealthPowerUp> healthPowerUps = [];
 }

@@ -12,6 +12,7 @@ class Animations {
   static late SpriteAnimation attack;
   static late SpriteAnimation block;
   static late SpriteAnimation jump;
+  static late SpriteAnimation spinningHeart;
   static late SpriteAnimation blueFireRat;
   static late SpriteAnimation redFireRat;
   static late SpriteAnimation purplePoisonRat;
@@ -41,6 +42,7 @@ class Animations {
     final knightSheet = await Flame.images.load('cheese_knight.png');
     final clockworkSheet = await Flame.images.load('clockwork_rat.png');
     final projectileSheet = await Flame.images.load('projectiles.png');
+    final healthPowerUp = await Flame.images.load('heart.png');
     final ratsize = Vector2(376, 368); // frame 1
     final ratsize2 = Vector2(376, 328); // frame 2+3
     final knightSize = Vector2(153.7, 136);
@@ -100,6 +102,17 @@ class Animations {
         textureSize: spriteSize,
         texturePosition: Vector2(500, 0),
         loop: false,
+      ),
+    );
+
+    // Spinning Heart PowerUp animation
+    spinningHeart = SpriteAnimation.fromFrameData(
+      healthPowerUp,
+      SpriteAnimationData.sequenced(
+        amount: 12,
+        stepTime: 0.10,
+        textureSize: Vector2(64, 64),
+        loop: true,
       ),
     );
 

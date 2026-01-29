@@ -28,7 +28,7 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    //DebugTools.resetAllPreferences(); // Uncomment to reset preferences for testing
+    DebugTools.resetAllPreferences(); // Uncomment to reset preferences for testing
     _loadStats();
     _loadSettings();
 
@@ -231,26 +231,28 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: isLandscape
                                       ? [
                                           Transform.translate(
                                             offset: Offset(ratDx, 0),
-                                            child: Text('Rat', style: ratStyle),
+                                            child: Text('City', style: ratStyle),
                                           ),
+                                          const SizedBox(width: 50),
                                         ]
                                       : [
                                           Transform.translate(
                                             offset: Offset(ratDx, 0),
-                                            child: Text('Rat', style: ratStyle),
+                                            child: Text('City', style: ratStyle),
                                           ),
                                           const SizedBox(width: 50),
                                         ],
                                 ),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: isLandscape
-                                      ? [
+                                      ? [ 
+                                         const SizedBox(width: 50),
                                           Transform.translate(
                                             offset: Offset(runDx, 0),
                                             child: Text('Run', style: runStyle),

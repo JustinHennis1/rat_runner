@@ -91,7 +91,7 @@ class _ContinueMenuState extends State<ContinueMenu>
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               const Text(
-                'Sewer Rat Runner',
+                'City Run',
                 style: TextStyle(
                   fontSize: 56,
                   color: Colors.white,

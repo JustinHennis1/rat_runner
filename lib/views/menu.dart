@@ -1,5 +1,7 @@
+import 'package:cityrun/models/achievement_manager.dart';
+import 'package:cityrun/models/game_state.dart';
 import 'package:flutter/material.dart';
-import 'package:ratrunner/views/game.dart';
+import 'package:cityrun/views/game.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flame_audio/flame_audio.dart';
 
@@ -159,21 +161,27 @@ class _ContinueMenuState extends State<ContinueMenu>
                 children: [
                   TextButton(
                     onPressed: () async {
-                      final score = await Navigator.push<int>(
+                      final res = await Navigator.push<GameResult>(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const MyGameWidget(),
                         ),
                       );
-        
+                      AchievementManager.flush();
+                      final score = res?.score;
+                      final noDamageDistance = res?.noDamageDistance;
                       if (score != null) {
                         final prefs =
                             await SharedPreferences.getInstance();
                         final currentHigh =
                             prefs.getInt('highScore') ?? 0;
+                        final maxNoDamage = prefs.getInt('maxNoDamageDistance') ?? 0;
         
                         if (score > currentHigh) {
                           await prefs.setInt('highScore', score);
+                        }
+                        if (noDamageDistance != null && noDamageDistance > maxNoDamage) {
+                          await prefs.setInt('maxNoDamageDistance', noDamageDistance);
                         }
         
                         prevScore = score;

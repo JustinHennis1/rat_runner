@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ratrunner/models/characters.dart';
+import 'package:cityrun/models/characters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CharacterManager extends ChangeNotifier {

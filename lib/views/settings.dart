@@ -1,5 +1,6 @@
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
-import 'package:ratrunner/models/game_settings_model.dart';
+import 'package:cityrun/models/game_settings_model.dart';
 
 class SettingsPage extends StatefulWidget {
   final double buttonSize;
@@ -23,6 +24,15 @@ class _GameSettingsState extends State<SettingsPage> {
   double buttonSize = GameSettingsModel.buttonSize;
   bool leftHanded = GameSettingsModel.leftHanded;
   bool musicOff = GameSettingsModel.musicOff;
+
+  Future<void> shutOffMusic() async {
+    if (!GameSettingsModel.musicOff) return;
+
+    await FlameAudio.audioCache.load('ratrun_audio.m4a');
+
+    FlameAudio.bgm.stop();
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,6 +149,11 @@ class _GameSettingsState extends State<SettingsPage> {
                               selectedActionSheet: widget.selectedActionSheet,
                             ),
                           );
+
+                          if (musicOff) {
+                            await shutOffMusic();
+                          }
+                          
                           Navigator.pop(context);
                         },
                         child: Text(

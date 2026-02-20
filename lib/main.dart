@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ratrunner/views/mainmenu.dart';
+import 'package:cityrun/views/mainmenu.dart';
 import 'package:flutter/services.dart';
 
 void main() async {

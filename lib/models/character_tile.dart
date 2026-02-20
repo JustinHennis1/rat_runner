@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ratrunner/models/characters.dart';
+import 'package:cityrun/models/characters.dart';
 
 class CharacterTile extends StatelessWidget {
   final Character character;

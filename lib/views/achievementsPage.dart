@@ -1,6 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:ratrunner/models/achievement_reward.dart';
-import 'package:ratrunner/models/achievements.dart';
+import 'package:cityrun/models/achievement_reward.dart';
+import 'package:cityrun/models/achievements.dart';
 
 class AchievementsPage extends StatelessWidget {
   final Set<String> unlockedAchievements;
@@ -106,7 +108,7 @@ class _AchievementTileState extends State<AchievementTile>
         duration: const Duration(milliseconds: 300),
         opacity: widget.unlocked ? 1.0 : 0.65,
         child: Transform.scale(
-          scale: widget.unlocked ? _scaleAnim.value : 1.0,
+          scale: widget.unlocked ? math.max(0.001, _scaleAnim.value) : 1.0,
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(

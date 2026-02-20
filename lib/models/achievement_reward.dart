@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ratrunner/models/characters.dart';
+import 'package:cityrun/models/characters.dart';
 
 enum AchievementRewardType {
   unlockCharacter,
@@ -54,23 +54,15 @@ class AchievementRewardPreview extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: color, width: 2),
             ),
-            child: ColorFiltered(
-              colorFilter: unlocked
-                  ? const ColorFilter.mode(
-                      Colors.transparent,
-                      BlendMode.dst,
-                    )
-                  : ColorFilter.mode(
-                      Colors.black.withOpacity(0.5),
-                      BlendMode.darken,
-                    ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: Image.asset(
-                  character.image,
-                  fit: BoxFit.cover,
-                ),
-              ),
+            child: ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(character.image, fit: BoxFit.cover),
+                if (!unlocked)
+                  Container(color: Colors.black.withOpacity(0.5)), // lock tint overlay
+              ],),
             ),
           ),
           const SizedBox(height: 4),

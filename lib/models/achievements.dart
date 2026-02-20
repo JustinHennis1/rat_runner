@@ -1,4 +1,4 @@
-import 'package:ratrunner/models/achievement_reward.dart';
+import 'package:cityrun/models/achievement_reward.dart';
 
 enum AchievementCategory { earlyGame, milestone, skill }
 
@@ -196,7 +196,6 @@ class Achievements {
       description: 'Travel 100,000 meters without taking damage.',
       category: AchievementCategory.skill,
       goal: 100000,
-      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '9')
     ),
     Achievement(
       id: 'no_damage_200000',
@@ -238,6 +237,7 @@ class Achievements {
       description: 'Defeat 100 bosses.',
       category: AchievementCategory.skill,
       goal: 100,
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '8')
     ),
     Achievement(
       id: 'boss_kills_150',
@@ -245,7 +245,7 @@ class Achievements {
       description: 'Defeat 150 bosses.',
       category: AchievementCategory.skill,
       goal: 150,
-      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '8')
+      reward: AchievementReward(type: AchievementRewardType.unlockCharacter, id: '9')
     ),
   ];
 

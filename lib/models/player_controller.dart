@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'package:ratrunner/models/animations.dart';
-import 'package:ratrunner/models/projectile.dart';
+import 'package:cityrun/models/animations.dart';
+import 'package:cityrun/models/projectile.dart';
 
 class PlayerController {
   static Projectile shoot(Vector2 position, String character) {
@@ -66,14 +66,17 @@ class PlayerController {
   }
 
   static void setRun(SpriteAnimationComponent boy) {
+    if (boy.animation == Animations.run) return;
     boy.animation = Animations.run;
   }
 
   static void setJump(SpriteAnimationComponent boy) {
+    if (boy.animation == Animations.jump) return;
     boy.animation = Animations.jump;
   }
 
   static void setAttack(SpriteAnimationComponent boy) {
+    if (boy.animation == Animations.attack) return;
     boy.animation = Animations.attack;
   }
 }

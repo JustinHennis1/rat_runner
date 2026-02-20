@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ratrunner/models/characters.dart';
-import 'package:ratrunner/models/character_tile.dart';
-import 'package:ratrunner/models/character_manager.dart';
-import 'package:ratrunner/models/game_settings_model.dart';
-import 'package:ratrunner/views/settings.dart';
+import 'package:cityrun/models/characters.dart';
+import 'package:cityrun/models/character_tile.dart';
+import 'package:cityrun/models/character_manager.dart';
+import 'package:cityrun/models/game_settings_model.dart';
+import 'package:cityrun/views/settings.dart';
 
 class PlayerCustomizationPage extends StatefulWidget {
   const PlayerCustomizationPage({super.key});

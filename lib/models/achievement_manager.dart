@@ -1,77 +1,139 @@
-import 'package:ratrunner/models/achievement_reward.dart';
-import 'package:ratrunner/models/character_manager.dart';
+import 'dart:async' as dart_async;
+
+import 'package:cityrun/models/achievement_reward.dart';
+import 'package:cityrun/models/character_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ratrunner/models/achievements.dart';
+import 'package:cityrun/models/achievements.dart';
 
 class AchievementManager {
   static const String _progressPrefix = 'achievement_progress_';
   static const String _unlockedKey = 'unlocked_achievements';
-  final CharacterManager characterManager = CharacterManager();
 
   /// ----------------------------
-  /// LOADERS
+  /// IN-MEMORY CACHE (prevents lag)
   /// ----------------------------
+  static bool _initialized = false;
+  static SharedPreferences? _prefs;
 
-  /// Returns map of achievementId -> current progress
-  static Future<Map<String, int>> loadProgress() async {
-    final prefs = await SharedPreferences.getInstance();
-    final Map<String, int> progress = {};
+  // Cached progress values (achievementId -> progress)
+  static final Map<String, int> _progressCache = {};
 
-    for (final achievement in Achievements.all) {
-      progress[achievement.id] =
-          prefs.getInt('$_progressPrefix${achievement.id}') ?? 0;
+  // Cached unlocked set
+  static final Set<String> _unlockedCache = {};
+
+  // Dirty keys that need to be written to prefs
+  static final Set<String> _dirtyProgress = {};
+  static bool _dirtyUnlocked = false;
+
+  // Debounce writes so spam input won't stutter
+  static dart_async.Timer? _flushTimer;
+
+  static const _flushDelay = Duration(milliseconds: 350);
+
+  /// Call this once early (MainMenu.initState is perfect),
+  /// OR it will auto-init on first use.
+  static Future<void> init() async {
+    if (_initialized) return;
+    _prefs = await SharedPreferences.getInstance();
+
+    // load unlocked
+    final list = _prefs!.getStringList(_unlockedKey) ?? [];
+    _unlockedCache
+      ..clear()
+      ..addAll(list);
+
+    // load progress for all achievements
+    _progressCache.clear();
+    for (final a in Achievements.all) {
+      _progressCache[a.id] = _prefs!.getInt('$_progressPrefix${a.id}') ?? 0;
     }
 
-    return progress;
+    _initialized = true;
   }
 
-  /// Returns set of unlocked achievement IDs
+  static Future<void> _ensureInit() async {
+    if (!_initialized) {
+      await init();
+    }
+  }
+
+  static void _scheduleFlush() {
+    _flushTimer?.cancel();
+    _flushTimer = dart_async.Timer(_flushDelay, () {
+      flush(); // fire and forget
+    });
+  }
+
+  /// Force-write any pending cached changes to SharedPreferences.
+  /// Call this on game end (best), app pause, etc.
+  static Future<void> flush() async {
+    await _ensureInit();
+    final prefs = _prefs!;
+
+    // Write progress
+    for (final id in _dirtyProgress) {
+      final key = '$_progressPrefix$id';
+      final val = _progressCache[id] ?? 0;
+      await prefs.setInt(key, val);
+    }
+    _dirtyProgress.clear();
+
+    // Write unlocked
+    if (_dirtyUnlocked) {
+      await prefs.setStringList(_unlockedKey, _unlockedCache.toList());
+      _dirtyUnlocked = false;
+    }
+  }
+
+  /// ----------------------------
+  /// LOADERS (read from cache)
+  /// ----------------------------
+
+  static Future<Map<String, int>> loadProgress() async {
+    await _ensureInit();
+    return Map<String, int>.from(_progressCache);
+  }
+
   static Future<Set<String>> loadUnlockedAchievements() async {
-    final prefs = await SharedPreferences.getInstance();
-    final list = prefs.getStringList(_unlockedKey) ?? [];
-    return list.toSet();
+    await _ensureInit();
+    return Set<String>.from(_unlockedCache);
   }
 
   /// ----------------------------
-  /// UPDATERS
+  /// UPDATERS (update cache, not disk)
   /// ----------------------------
 
-  /// Increment progress safely (distance, runs, kills, etc.)
-  static Future<void> incrementProgress(
-    String achievementId,
-    int amount,
-  ) async {
-    final prefs = await SharedPreferences.getInstance();
+  static Future<void> incrementProgress(String achievementId, int amount) async {
+    await _ensureInit();
 
-    final achievement =
-        Achievements.all.firstWhere((a) => a.id == achievementId);
+    final achievement = Achievements.all.firstWhere((a) => a.id == achievementId);
 
-    final key = '$_progressPrefix$achievementId';
-    final current = prefs.getInt(key) ?? 0;
-
+    final current = _progressCache[achievementId] ?? 0;
     final updated = (current + amount).clamp(0, achievement.goal);
-    await prefs.setInt(key, updated);
+
+    if (updated == current) return;
+
+    _progressCache[achievementId] = updated;
+    _dirtyProgress.add(achievementId);
+    _scheduleFlush();
 
     if (updated >= achievement.goal) {
       await _unlockAchievement(achievementId);
     }
   }
 
-  /// Set progress directly (useful for distance tracking)
-  static Future<void> setProgress(
-    String achievementId,
-    int value,
-  ) async {
-    final prefs = await SharedPreferences.getInstance();
+  static Future<void> setProgress(String achievementId, int value) async {
+    await _ensureInit();
 
-    final achievement =
-        Achievements.all.firstWhere((a) => a.id == achievementId);
-
+    final achievement = Achievements.all.firstWhere((a) => a.id == achievementId);
     final clamped = value.clamp(0, achievement.goal);
-    await prefs.setInt(
-      '$_progressPrefix$achievementId',
-      clamped,
-    );
+
+    final current = _progressCache[achievementId] ?? 0;
+    if (clamped == current) return;
+
+    _progressCache[achievementId] = clamped;
+    _dirtyProgress.add(achievementId);
+    _scheduleFlush();
 
     if (clamped >= achievement.goal) {
       await _unlockAchievement(achievementId);
@@ -79,67 +141,66 @@ class AchievementManager {
   }
 
   /// ----------------------------
-  /// UNLOCK LOGIC
+  /// UNLOCK LOGIC (cached)
   /// ----------------------------
 
   static Future<void> _unlockAchievement(String id) async {
-    final prefs = await SharedPreferences.getInstance();
+    await _ensureInit();
 
-    final unlocked = prefs.getStringList(_unlockedKey) ?? [];
+    if (_unlockedCache.contains(id)) return;
 
-    if (!unlocked.contains(id)) {
-      unlocked.add(id);
-      Achievement ach = Achievements.getById(id);
-      onAchievementUnlocked(ach);
-      await prefs.setStringList(_unlockedKey, unlocked);
-    }
+    _unlockedCache.add(id);
+    _dirtyUnlocked = true;
+    _scheduleFlush();
+
+    final ach = Achievements.getById(id);
+    onAchievementUnlocked(ach);
   }
 
   static void onAchievementUnlocked(Achievement achievement) {
-    
-  final reward = achievement.reward;
-  if (reward == null) return;
+    final reward = achievement.reward;
+    if (reward == null) return;
 
-  switch (reward.type) {
-    case AchievementRewardType.unlockCharacter:
-      CharacterManager().unlockCharacter(reward.id);
-      break;
+    switch (reward.type) {
+      case AchievementRewardType.unlockCharacter:
+        CharacterManager().unlockCharacter(reward.id);
+        break;
 
-    case AchievementRewardType.unlockAnimation:
-      // AnimationManager.unlock(reward.id);
-      break;
+      case AchievementRewardType.unlockAnimation:
+        break;
 
-    case AchievementRewardType.unlockSkin:
-      // SkinManager.unlock(reward.id);
-      break;
+      case AchievementRewardType.unlockSkin:
+        break;
 
-    case AchievementRewardType.unlockProjectile:
-      // ProjectileManager.unlock(reward.id);
-      break;
+      case AchievementRewardType.unlockProjectile:
+        break;
 
-    case AchievementRewardType.currency:
-      // CurrencyManager.add(reward.amount);
-      break;
+      case AchievementRewardType.currency:
+        break;
+    }
   }
-}
-
 
   /// ----------------------------
   /// HELPERS
   /// ----------------------------
 
   static Future<bool> isUnlocked(String id) async {
-    final unlocked = await loadUnlockedAchievements();
-    return unlocked.contains(id);
+    await _ensureInit();
+    return _unlockedCache.contains(id);
   }
 
   static Future<void> resetAll() async {
-    final prefs = await SharedPreferences.getInstance();
+    await _ensureInit();
+    final prefs = _prefs!;
 
-    for (final achievement in Achievements.all) {
-      await prefs.remove('$_progressPrefix${achievement.id}');
+    for (final a in Achievements.all) {
+      await prefs.remove('$_progressPrefix${a.id}');
     }
-
     await prefs.remove(_unlockedKey);
+
+    _progressCache.clear();
+    _unlockedCache.clear();
+    _dirtyProgress.clear();
+    _dirtyUnlocked = false;
   }
 }

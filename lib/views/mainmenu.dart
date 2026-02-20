@@ -1,13 +1,14 @@
+import 'package:cityrun/models/game_state.dart';
 import 'package:flutter/material.dart';
-import 'package:ratrunner/models/achievement_manager.dart';
-import 'package:ratrunner/models/character_manager.dart';
-import 'package:ratrunner/models/game_settings_model.dart';
-import 'package:ratrunner/tools/debug.dart';
-import 'package:ratrunner/views/achievementsPage.dart';
-import 'package:ratrunner/views/game.dart';
-import 'package:ratrunner/views/menu.dart';
-import 'package:ratrunner/views/playerCustomizationPage.dart';
-import 'package:ratrunner/views/settings.dart';
+import 'package:cityrun/models/achievement_manager.dart';
+import 'package:cityrun/models/character_manager.dart';
+import 'package:cityrun/models/game_settings_model.dart';
+import 'package:cityrun/tools/debug.dart';
+import 'package:cityrun/views/achievementsPage.dart';
+import 'package:cityrun/views/game.dart';
+import 'package:cityrun/views/menu.dart';
+import 'package:cityrun/views/playerCustomizationPage.dart';
+import 'package:cityrun/views/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MainMenu extends StatefulWidget {
@@ -19,6 +20,7 @@ class MainMenu extends StatefulWidget {
 
 class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin {
   int highScore = 0;
+  int currentMaxDistance = 0;
   Set<String> unlockedAchievements = {};
   Map<String, int> achievementProgress = {};
 
@@ -28,9 +30,10 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    DebugTools.resetAllPreferences(); // Uncomment to reset preferences for testing
+    //DebugTools.resetAllPreferences(); // Uncomment to reset preferences for testing
     _loadStats();
     _loadSettings();
+    AchievementManager.init();
 
     _startCtrl = AnimationController(
       vsync: this,
@@ -51,6 +54,7 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
     await CharacterManager().loadUnlockedCharacters();
     setState(() {
       highScore = prefs.getInt('highScore') ?? 0;
+      currentMaxDistance = prefs.getInt('maxNoDamageDistance') ?? 0;
       unlockedAchievements = unlocked;
       achievementProgress = progress;
     });
@@ -73,7 +77,7 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
     await _startCtrl.forward();
 
     // Navigate to the game and wait for the final score
-    final score = await Navigator.push<int>(
+    final res = await Navigator.push<GameResult>(
       context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const MyGameWidget(),
@@ -84,18 +88,24 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
       ),
     );
 
+    final score = res?.score ?? 0;
+    final noDamageDist = res?.noDamageDistance ?? 0;
+
     // Reset menu animation when we come back
     _startCtrl.reset();
     if (mounted) setState(() => _starting = false);
 
     // Save new high score if needed
-    if (score != null) {
+    if (score != 0) {
       final prefs = await SharedPreferences.getInstance();
       final currentHigh = prefs.getInt('highScore') ?? 0;
       if (score > currentHigh) {
         await prefs.setInt('highScore', score);
       }
-      _loadStats();
+      if (noDamageDist > currentMaxDistance) {
+        await prefs.setInt('maxNoDamageDistance', noDamageDist);
+      }
+      await _loadStats();
     }
 
     await Navigator.push(
@@ -323,7 +333,7 @@ class _MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin
                                 ),
                               ),
                             ),
-                            onPressed: _startGame, // ✅ play triggers transition
+                            onPressed: _startGame,
                             child: const Padding(
                               padding: EdgeInsets.all(8.0),
                               child: Text(

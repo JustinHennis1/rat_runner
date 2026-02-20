@@ -1,6 +1,10 @@
+import 'package:cityrun/models/animations.dart';
 import 'package:flame/components.dart';
 import 'dart:ui';
 import 'dart:math' as math;
+
+import 'package:flame/effects.dart';
+import 'package:flutter/material.dart';
 
 class Player extends SpriteAnimationComponent {
   Player({required Vector2 position, required SpriteAnimation animation})
@@ -16,17 +20,15 @@ class Enemy extends SpriteAnimationComponent {
   final int enemyLevel;
   bool isAttacking = false;
 
-  // ===== Hit FX state =====
   double _flashTimer = 0.0;
-  double _flashDuration = 0.10;
+  final double _flashDuration = 0.10;
 
   double _shakeTimer = 0.0;
-  double _shakeDuration = 0.12;
-  double _shakeMagnitude = 4.0; // pixels
+  final double _shakeDuration = 0.12;
+  final double _shakeMagnitude = 4.0;
 
-  // Track and remove shake offset so the enemy never "drifts"
-  Vector2 _currentShakeOffset = Vector2.zero();
   double _shakePhase = 0.0;
+  Vector2 _shakeOffset = Vector2.zero();
 
   Enemy({
     required this.enemyLevel,
@@ -42,59 +44,106 @@ class Enemy extends SpriteAnimationComponent {
   void setAttacking(bool attacking) => isAttacking = attacking;
   bool getAttacking() => isAttacking;
 
-  /// ✅ Call this when the enemy takes damage
   void onHit() {
     _flashTimer = _flashDuration;
     _shakeTimer = _shakeDuration;
     _shakePhase = 0.0;
   }
 
-  @override
-  void update(double dt) {
-    super.update(dt);
+  void startBounce({
+    double distance = 140,
+    double verticalOffset = 0,
+    double seconds = 0.45,
+  }) {
+    // Remove existing effects
+    children.whereType<Effect>().forEach((e) => e.removeFromParent());
 
-    // Flash countdown
-    if (_flashTimer > 0) _flashTimer -= dt;
+    final start = position.clone();
 
-    // Remove previous shake offset first (prevents permanent movement)
-    if (_currentShakeOffset.length2 != 0) {
-      position -= _currentShakeOffset;
-      _currentShakeOffset.setZero();
+    // Decide direction based on facing
+    final bool facingLeft = scale.x < 0 || isFlippedHorizontally;
+
+    final Vector2 offset =
+        facingLeft ? Vector2(-distance, verticalOffset) : Vector2(distance, verticalOffset);
+
+    add(
+      MoveEffect.to(
+        start + offset,
+        EffectController(
+          duration: seconds,
+          curve: Curves.easeInOut,
+          alternate: true,
+          infinite: true,
+        ),
+      ),
+    );
+  }
+
+  void startBounceByType() {
+    double distance = 140;
+    double verticalOffset = 0;
+    double speed = 0.45;
+
+    if (animation == Animations.cheeseKnightRat ||
+        animation == Animations.clockworkRat) {
+      distance = 90;   // heavy enemies
+      speed = 0.7;
+    } else if (animation == Animations.purplePoisonRat) {
+      distance = 0;
+      speed = 0.35;
+      verticalOffset = -20;
+    } else if (animation == Animations.redFireRat) {
+      distance = 0;
+      verticalOffset = -40;
+      speed = 0.5;
+    } else if (animation == Animations.blueFireRat) {
+      distance = -20;
+      verticalOffset = -30;
+      speed = 0.6;
     }
 
-    // Apply shake (temporary)
+    startBounce(distance: distance,verticalOffset: verticalOffset, seconds: speed);
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt); // ✅ allows effects to tick
+
+    if (_flashTimer > 0) _flashTimer -= dt;
+
     if (_shakeTimer > 0) {
       _shakeTimer -= dt;
-      _shakePhase += dt * 60.0; // shake speed
+      _shakePhase += dt * 60.0;
 
       final x = math.sin(_shakePhase) * _shakeMagnitude;
       final y = math.cos(_shakePhase * 0.9) * (_shakeMagnitude * 0.35);
-
-      _currentShakeOffset = Vector2(x, y);
-      position += _currentShakeOffset;
+      _shakeOffset = Vector2(x, y);
     } else {
       _shakeTimer = 0;
+      _shakeOffset.setZero();
     }
   }
 
   @override
   void render(Canvas canvas) {
-    // Draw normally first
+    canvas.save();
+    canvas.translate(_shakeOffset.x, _shakeOffset.y);
+
     super.render(canvas);
 
-    // Strong white flash overlay by drawing again with additive blend
     if (_flashTimer > 0) {
       final t = (_flashTimer / _flashDuration).clamp(0.0, 1.0);
-
       final oldPaint = paint;
+
       paint = Paint()
         ..color = Color.fromRGBO(255, 255, 255, 0.85 * t)
-        ..blendMode = BlendMode.plus; // additive = very visible
+        ..blendMode = BlendMode.plus;
 
       super.render(canvas);
-
       paint = oldPaint;
     }
+
+    canvas.restore();
   }
 }
 

@@ -1,125 +1,35 @@
-name: ratrunner
+name: cityrun
 description: "Mobile game where you play as various characters running and fighting bosses."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.1+6
 
 environment:
   sdk: ^3.9.2
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flame: ^1.32.0
   flame_audio: ^2.11.12
   shared_preferences: ^2.5.3
-
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
+  flutter_launcher_icons: ^0.14.4
   flutter_lints: ^5.0.0
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
-
-  # To add assets to your application, add an assets section, like this:
+  
   assets:
-    - assets/audio/
-    - assets/images/stickmen.png
-    - assets/images/rats.png
-    - assets/images/jmp_btn.png
-    - assets/images/shoot_btn.png
-    - assets/images/lunge_btn.png
-    - assets/images/cheese_knight.png
-    - assets/images/clockwork_rat.png
-    - assets/images/projectiles.png
-    - assets/images/boy.png
-    - assets/images/boy_actions.png
-    - assets/images/background.jpg
-    - assets/images/background_day.png
-    - assets/images/background_dawn.png
-    - assets/images/background_night.png
-    - assets/images/background_sunset.png
-    - assets/images/pgdesign.png
-    - assets/images/dripjacket.png
-    - assets/images/thugboy.png
-    - assets/characters/boy_.png
-    - assets/characters/thugboy_.png
-    - assets/images/thugboy_actions.png
-    - assets/characters/dripjacket_.png
-    - assets/images/dripjacket_actions.png
-    - assets/images/scientist.png
-    - assets/images/scientist_actions.png
-    - assets/characters/scientist_.png
-    - assets/characters/exterminator_.png
-    - assets/images/exterminator_actions.png
-    - assets/images/exterminator.png
-    - assets/images/chef.png
-    - assets/images/chef_actions.png
-    - assets/characters/chef_.png
-    - assets/images/samurai.png
-    - assets/images/samurai_actions.png
-    - assets/characters/samurai_.png
-    - assets/images/toxic.png
-    - assets/images/toxic_actions.png
-    - assets/characters/toxic_.png
-    - assets/images/ronin.png
-    - assets/images/ronin_actions.png
-    - assets/characters/ronin_.png
-    - assets/images/assassin.png
-    - assets/images/assassin_actions.png
-    - assets/characters/assassin_.png
-    - assets/images/heart.png
+  - assets/audio/
+  - assets/images/
+  - assets/characters/
 
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
   fonts:
     - family: Gamer
       fonts:
@@ -127,6 +37,3 @@ flutter:
           style: normal
         - asset: assets/fonts/gamer-font/GamerDisplay.otf
           style: italic
-  
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package

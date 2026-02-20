@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'package:ratrunner/models/powerups.dart';
-import 'package:ratrunner/models/projectile.dart';
+import 'package:cityrun/models/powerups.dart';
+import 'package:cityrun/models/projectile.dart';
 
 class GameState {
   // Player
@@ -19,7 +19,8 @@ class GameState {
   int lastSavedNoDamageDistance = 0;
 
   double distance = 0;
-  double noDamageDistance = 0;
+  double currentNoDamageStreak = 0;
+  double bestNoDamageStreak = 0;
   int level = 1;
   int? lastEnemyLevel = 1;
 
@@ -35,3 +36,14 @@ class GameState {
   // Power-ups
   final List<HealthPowerUp> healthPowerUps = [];
 }
+
+class GameResult {
+  final int score;
+  final int noDamageDistance;
+
+  const GameResult({
+    required this.score,
+    required this.noDamageDistance,
+  });
+}
+

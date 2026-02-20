@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'package:flame/components.dart';
-import 'package:ratrunner/models/animations.dart';
-import 'package:ratrunner/models/characters.dart';
-import 'package:ratrunner/models/projectile.dart';
+import 'package:cityrun/models/animations.dart';
+import 'package:cityrun/models/characters.dart';
+import 'package:cityrun/models/projectile.dart';
 
 class EnemyController {
   static final Random _rng = Random();

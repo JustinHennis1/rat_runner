@@ -1,4 +1,4 @@
-import 'package:ratrunner/views/settings.dart';
+import 'package:cityrun/views/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GameSettingsModel {
